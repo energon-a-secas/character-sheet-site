@@ -69,7 +69,7 @@ player-card-site/
 
 **Tech:** Pure HTML + CSS + Canvas API + JavaScript ES modules. External API calls for anime and movie search.
 
-## Run Locally
+## Run locally
 
 ```bash
 cd player-card-site

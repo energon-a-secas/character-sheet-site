@@ -2,6 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
+  <meta http-equiv="X-Frame-Options" content="DENY">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Character Sheet — Know Your Party</title>
   <meta name="description" content="RPG-style personality interview. Discover gaming habits, anime picks, movie tastes, hobbies, and hot takes. Export your character card">
@@ -42,6 +43,7 @@
         <div class="xp-bar-track">
           <div class="xp-bar-fill" id="xp-fill" style="width:0%"></div>
         </div>
+        <div class="section-dots" id="section-dots"></div>
       </div>
 
       <!-- Section container -->
@@ -50,7 +52,10 @@
       <!-- Navigation -->
       <div class="nav-buttons" id="nav-buttons">
         <button class="btn btn-secondary" id="btn-prev" onclick="prevSection()">Back</button>
-        <button class="btn btn-random" id="btn-random" onclick="randomFill()" title="Fill with random test data">Randomize</button>
+        <div class="nav-center">
+          <button class="btn btn-random" id="btn-random" onclick="randomFill()" title="Fill with random test data">Randomize</button>
+          <button class="btn btn-restart" id="btn-restart" onclick="startOver()" title="Clear all data and start fresh">Start Over</button>
+        </div>
         <button class="btn btn-primary" id="btn-next" onclick="nextSection()">Next</button>
       </div>
 

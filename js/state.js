@@ -83,6 +83,24 @@ export function save(s) {
   } catch { /* quota */ }
 }
 
+export function resetState(s) {
+  s.currentSection = 0;
+  s.identity = { name: '', handles: [], description: '' };
+  s.gaming = { consoles: [], topGames: [], replayGame: null, favoriteCharacter: '' };
+  s.anime = { watches: null, topAnime: [], favoriteCharacterData: null, waifuHusbandoData: null, waifuHusbandoSkip: '', subDub: '', comfortRewatch: null };
+  s.movies = { topMovies: [], starWars: null, starWarsTrilogy: '', starWarsSide: '', marvel: null, marvelHero: '', comfortRewatch: null, favoriteQuote: '', favoriteQuoteSource: '' };
+  s.hobbies = { selected: [], custom: '', creative: '' };
+  s.wildcards = {
+    weirdThing: { value: '', skip: '' }, lifeHack: { value: '', skip: '' },
+    hillToDieOn: { value: '', skip: '' }, guiltyPleasure: { value: '', skip: '' },
+    threeApps: { value: '', skip: '' }, breakfastSTier: { value: '', skip: '' },
+  };
+  s.extras = { memeLink: '', memeNote: '' };
+  s.showBuilder = false;
+  s.cardConfig = { avatarId: '', highlightedMedia: [], showSocials: true, showCollection: true };
+  localStorage.removeItem(STORAGE_KEY);
+}
+
 function deepMerge(target, source) {
   for (const key of Object.keys(source)) {
     if (source[key] && typeof source[key] === 'object' && !Array.isArray(source[key]) && target[key] && typeof target[key] === 'object') {

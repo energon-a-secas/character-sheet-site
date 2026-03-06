@@ -1,6 +1,6 @@
-import { state, save } from './state.js';
+import { state, save, resetState } from './state.js';
 import { SECTIONS } from './data.js';
-import { render, renderSection, renderProgressBar, renderNav, renderMediaShelf } from './render.js';
+import { render, renderSection, renderProgressBar, renderNav, renderMediaShelf, renderSectionDots } from './render.js';
 import { renderBuilder, getAllHighlightableMedia } from './builder.js';
 import { searchGames, searchAnime, searchAnimeCharacters, searchMovies } from './api.js';
 import { generateCard, exportPDF } from './card.js';
@@ -177,6 +177,19 @@ function onClick(e) {
     return;
   }
 
+  if (el.dataset.dot !== undefined || el.closest('[data-dot]')) {
+    const dot = el.closest('[data-dot]') || el;
+    const idx = parseInt(dot.dataset.dot, 10);
+    if (state.showBuilder) {
+      state.showBuilder = false;
+    }
+    state.currentSection = idx;
+    save(state);
+    render();
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+    return;
+  }
+
   if (!el.closest('.search-wrapper')) {
     document.querySelectorAll('.search-results.open').forEach(r => r.classList.remove('open'));
   }
@@ -185,7 +198,23 @@ function onClick(e) {
 function onKeydown(e) {
   if (e.key === 'Escape') {
     document.querySelectorAll('.search-results.open').forEach(r => r.classList.remove('open'));
+    if ($('card-modal').classList.contains('open')) {
+      window.closeCardModal();
+    }
   }
+  if (e.key === 'ArrowRight' && e.altKey && !isInputFocused()) {
+    e.preventDefault();
+    window.nextSection();
+  }
+  if (e.key === 'ArrowLeft' && e.altKey && !isInputFocused()) {
+    e.preventDefault();
+    window.prevSection();
+  }
+}
+
+function isInputFocused() {
+  const tag = document.activeElement?.tagName;
+  return tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT';
 }
 
 async function handleSearch(wrapper, query) {
@@ -273,10 +302,40 @@ function getNestedValue(obj, path) {
   return target;
 }
 
+window.startOver = function() {
+  const hasData = state.identity.name || state.gaming.topGames.length || state.anime.topAnime.length || state.movies.topMovies.length || state.hobbies.selected.length;
+  if (!hasData || confirm('Start fresh? All your answers will be cleared.')) {
+    resetState(state);
+    render();
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+    showToast('Fresh start!');
+  }
+};
+
+function spawnConfetti() {
+  const container = document.createElement('div');
+  container.className = 'confetti-container';
+  document.body.appendChild(container);
+  const colors = ['#a78bfa', '#34d399', '#f472b6', '#fbbf24', '#2dd4bf', '#818cf8', '#fb923c', '#f43f5e'];
+  for (let i = 0; i < 60; i++) {
+    const piece = document.createElement('div');
+    piece.className = 'confetti-piece';
+    piece.style.setProperty('--x', `${(Math.random() - 0.5) * 100}vw`);
+    piece.style.setProperty('--r', `${Math.random() * 720 - 360}deg`);
+    piece.style.setProperty('--delay', `${Math.random() * 0.3}s`);
+    piece.style.setProperty('--dur', `${1 + Math.random() * 1.2}s`);
+    piece.style.background = colors[Math.floor(Math.random() * colors.length)];
+    piece.style.left = `${20 + Math.random() * 60}%`;
+    container.appendChild(piece);
+  }
+  setTimeout(() => container.remove(), 3000);
+}
+
 window.nextSection = async function() {
   if (state.showBuilder) {
     $('card-modal').classList.add('open');
     await generateCard(state);
+    spawnConfetti();
     return;
   }
 

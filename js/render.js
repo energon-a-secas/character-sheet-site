@@ -1,5 +1,5 @@
 import { state } from './state.js';
-import { SECTIONS, CONSOLES, PLATFORMS, HOBBY_OPTIONS, WILDCARDS } from './data.js';
+import { SECTIONS, CONSOLES, PLATFORMS, HOBBY_OPTIONS, WILDCARDS, getSectionFill } from './data.js';
 import { escHtml, $ } from './utils.js';
 
 let lastRenderedSection = -1;
@@ -33,6 +33,20 @@ export function renderProgressBar() {
   $('xp-text').textContent = `${state.currentSection + 1} / ${SECTIONS.length}`;
   $('xp-fill').style.width = pct + '%';
   document.documentElement.style.setProperty('--section-glow', `var(${sec.glow})`);
+  renderSectionDots();
+}
+
+export function renderSectionDots() {
+  const container = $('section-dots');
+  if (!container) return;
+  container.innerHTML = SECTIONS.map((sec, i) => {
+    const fill = getSectionFill(state, sec.key);
+    const active = i === state.currentSection;
+    const fillClass = fill >= 1 ? ' dot-full' : fill > 0 ? ' dot-partial' : '';
+    return `<button class="section-dot${active ? ' dot-active' : ''}${fillClass}" data-dot="${i}" title="${sec.title}" style="--dot-glow: var(${sec.glow})">
+      <svg viewBox="0 0 20 20"><circle cx="10" cy="10" r="8" fill="none" stroke-width="2" stroke="currentColor" opacity="0.3"/>${fill > 0 ? `<circle cx="10" cy="10" r="8" fill="none" stroke-width="2" stroke="currentColor" stroke-dasharray="${50.3}" stroke-dashoffset="${50.3 * (1 - fill)}" class="dot-fill-ring"/>` : ''}</svg>
+    </button>`;
+  }).join('');
 }
 
 export function renderNav() {
@@ -46,6 +60,7 @@ export function renderSection(animate) {
   const sec = SECTIONS[state.currentSection];
   const container = $('section-container');
   const animClass = animate ? ' section-entering' : '';
+  renderSectionDots();
   let html = `<div class="section-card${animClass}">
     <div class="section-title">${escHtml(sec.title)}</div>
     <div class="section-flavor">${escHtml(sec.flavor)}</div>`;

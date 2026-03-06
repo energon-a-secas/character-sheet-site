@@ -98,3 +98,57 @@ export function getRPGClass(s) {
   }
   return 'Balanced Adventurer';
 }
+
+export function getSectionFill(s, key) {
+  switch (key) {
+    case 'identity': {
+      let f = 0, t = 3;
+      if (s.identity.name) f++;
+      if (s.identity.handles.length) f++;
+      if (s.identity.description) f++;
+      return f / t;
+    }
+    case 'gaming': {
+      let f = 0, t = 4;
+      if (s.gaming.consoles.length) f++;
+      if (s.gaming.topGames.length) f++;
+      if (s.gaming.replayGame) f++;
+      if (s.gaming.favoriteCharacter) f++;
+      return f / t;
+    }
+    case 'anime': {
+      if (s.anime.watches === false) return 1;
+      if (s.anime.watches === null) return 0;
+      let f = 1, t = 5;
+      if (s.anime.topAnime.length) f++;
+      if (s.anime.favoriteCharacterData) f++;
+      if (s.anime.waifuHusbandoData || s.anime.waifuHusbandoSkip) f++;
+      if (s.anime.subDub) f++;
+      return f / t;
+    }
+    case 'movies': {
+      let f = 0, t = 4;
+      if (s.movies.topMovies.length) f++;
+      if (s.movies.starWars !== null) f++;
+      if (s.movies.marvel !== null) f++;
+      if (s.movies.favoriteQuote) f++;
+      return f / t;
+    }
+    case 'hobbies': {
+      let f = 0, t = 2;
+      if (s.hobbies.selected.length) f++;
+      if (s.hobbies.custom || s.hobbies.creative) f++;
+      return f / t;
+    }
+    case 'wildcards': {
+      const filled = Object.values(s.wildcards).filter(w => w.value || w.skip).length;
+      return filled / 6;
+    }
+    case 'extras': {
+      let f = 0, t = 1;
+      if (s.extras.memeLink || s.extras.memeNote) f++;
+      return f / t;
+    }
+    default: return 0;
+  }
+}
