@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Character Sheet — Know Your Party</title>
+  <meta name="description" content="RPG-style personality interview. Discover gaming habits, anime picks, movie tastes, hobbies, and hot takes. Export your character card">
+  <meta name="theme-color" content="#040714">
+  <link rel="icon" type="image/x-icon" href="favicon.ico" />
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+  <a class="skip-link" href="#main">Skip to content</a>
+
+  <header class="header-bar">
+    <div class="header-logo">
+      <a href="https://ehq.cl/" target="_blank" rel="noopener noreferrer">
+        <img src="energon-classic-logo.png" class="header-logo-img" alt="Logo">
+      </a>
+      <div>
+        <h1>Character Sheet</h1>
+        <div class="header-subtitle">Know Your Party</div>
+      </div>
+    </div>
+    <a class="header-home" href="https://neorgon.com/" title="neorgon.com" aria-label="Neorgon home" target="_blank" rel="noopener noreferrer">
+      <svg viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+        <path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/>
+      </svg>
+    </a>
+  </header>
+
+  <main id="main">
+    <div class="container">
+
+      <!-- Progress bar -->
+      <div class="xp-bar-wrapper">
+        <div class="xp-bar-label">
+          <span id="section-label">Identity</span>
+          <span id="xp-text">0 / 6</span>
+        </div>
+        <div class="xp-bar-track">
+          <div class="xp-bar-fill" id="xp-fill" style="width:0%"></div>
+        </div>
+      </div>
+
+      <!-- Section container -->
+      <div id="section-container"></div>
+
+      <!-- Navigation -->
+      <div class="nav-buttons" id="nav-buttons">
+        <button class="btn btn-secondary" id="btn-prev" onclick="prevSection()">Back</button>
+        <button class="btn btn-random" id="btn-random" onclick="randomFill()" title="Fill with random test data">Randomize</button>
+        <button class="btn btn-primary" id="btn-next" onclick="nextSection()">Next</button>
+      </div>
+
+    </div>
+
+    <!-- Media shelf -->
+    <div class="media-shelf" id="media-shelf" style="display:none"></div>
+
+  </main>
+
+  <!-- Character Card Modal -->
+  <div class="modal-overlay" id="card-modal">
+    <div class="modal-content card-modal-content">
+      <button class="modal-close" onclick="closeCardModal()">&times;</button>
+      <canvas id="card-canvas" width="800" height="1100"></canvas>
+      <div class="card-modal-actions">
+        <button class="btn btn-primary" onclick="downloadCard()">Download PNG</button>
+        <button class="btn btn-primary" onclick="downloadPDF()" style="background: linear-gradient(135deg, #fb923c, #fbbf24); box-shadow: 0 4px 16px rgba(251,146,60,.3)">Download PDF</button>
+        <button class="btn btn-secondary" onclick="closeCardModal()">Close</button>
+      </div>
+    </div>
+  </div>
+
+  <script type="module" src="js/app.js"></script>
+</body>
+</html>

@@ -1,0 +1,7 @@
+name = "charactersheet-api"
+main = "worker.js"
+compatibility_date = "2024-01-01"
+
+# After first deploy, add secrets via CLI:
+#   npx wrangler secret put RAWG_API_KEY
+#   npx wrangler secret put TMDB_READ_TOKEN
