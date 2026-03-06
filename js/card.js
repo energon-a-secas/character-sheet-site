@@ -615,6 +615,8 @@ export function exportPDF(s) {
   } else {
     const script = document.createElement('script');
     script.src = 'https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.2/jspdf.umd.min.js';
+    script.integrity = 'sha384-5MXQT3yrGpx6/FO6Z5JlMsn1xsN/OggV+b88W2CfpNqmvPfmv7JW/O8x78GzptfE';
+    script.crossOrigin = 'anonymous';
     script.onload = loadAndGenerate;
     script.onerror = () => showToast('Failed to load PDF library');
     document.head.appendChild(script);
