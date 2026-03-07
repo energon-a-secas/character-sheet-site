@@ -331,11 +331,46 @@ function spawnConfetti() {
   setTimeout(() => container.remove(), 3000);
 }
 
+function playRevealSound() {
+  try {
+    const ctx = new (window.AudioContext || window.webkitAudioContext)();
+    const master = ctx.createGain();
+    master.gain.setValueAtTime(0.25, ctx.currentTime);
+    master.connect(ctx.destination);
+
+    const notes = [
+      { freq: 523.25, delay: 0,    dur: 0.18, type: 'square',   vol: 0.6 },
+      { freq: 659.25, delay: 0,    dur: 0.18, type: 'square',   vol: 0.5 },
+      { freq: 783.99, delay: 0.06, dur: 0.22, type: 'square',   vol: 0.55 },
+      { freq: 1046.5, delay: 0.12, dur: 0.35, type: 'square',   vol: 0.4 },
+      { freq: 1318.5, delay: 0.12, dur: 0.35, type: 'triangle', vol: 0.25 },
+      { freq: 2093,   delay: 0.14, dur: 0.3,  type: 'sine',     vol: 0.12 },
+    ];
+
+    notes.forEach(n => {
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.type = n.type;
+      osc.frequency.setValueAtTime(n.freq, ctx.currentTime + n.delay);
+      gain.gain.setValueAtTime(0, ctx.currentTime + n.delay);
+      gain.gain.linearRampToValueAtTime(n.vol, ctx.currentTime + n.delay + 0.01);
+      gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + n.delay + n.dur);
+      osc.connect(gain);
+      gain.connect(master);
+      osc.start(ctx.currentTime + n.delay);
+      osc.stop(ctx.currentTime + n.delay + n.dur + 0.05);
+    });
+
+    setTimeout(() => ctx.close(), 1500);
+  } catch { /* no audio support */ }
+}
+
 window.nextSection = async function() {
   if (state.showBuilder) {
     $('card-modal').classList.add('open');
     await generateCard(state);
     spawnConfetti();
+    playRevealSound();
     return;
   }
 
