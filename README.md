@@ -45,6 +45,8 @@
 
 ## Architecture
 
+![Architecture](docs/architecture.svg)
+
 Modular ES module app following the standard project layout:
 
 ```
