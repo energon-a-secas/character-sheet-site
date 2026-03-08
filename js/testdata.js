@@ -15,6 +15,16 @@ const DESCRIPTIONS = [
   'According to my screen time, I practically live online. No regrets.',
 ];
 
+const COUNTRIES = ['Chile', 'Germany', 'Japan', 'Brazil', 'Spain', 'Remote (no fixed HQ)', ''];
+
+const BEST_TIME_PRESENT = [
+  'When my coffee kicks in (UTC-3)',
+  'Probably sleeping. Try after 10 AM my time.',
+  'Best time: when their coffee kicks in (UTC-5)',
+  'Anytime except 3 AM',
+  '',
+];
+
 const GAMES = [
   { id: 3498,  name: 'Grand Theft Auto V',           image: 'https://media.rawg.io/media/games/456/456dea5e1c7e3cd07060c14e96612001.jpg', year: '2013' },
   { id: 3328,  name: 'The Witcher 3: Wild Hunt',     image: 'https://media.rawg.io/media/games/618/618c2031a07bbff6b4f611f10b6571c2.jpg', year: '2015' },
@@ -124,6 +134,8 @@ export function randomFill() {
 
   state.identity.name = pick(NAMES);
   state.identity.handles = pickN(HANDLES_POOL, 2 + Math.floor(Math.random() * 3));
+  state.identity.country = pick(COUNTRIES);
+  state.identity.bestTimeToPresent = pick(BEST_TIME_PRESENT);
   state.identity.description = pick(DESCRIPTIONS);
 
   state.gaming.consoles = pickN(['pc', 'playstation', 'xbox', 'nintendo', 'mobile', 'retro'], 2 + Math.floor(Math.random() * 2));

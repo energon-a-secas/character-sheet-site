@@ -1,11 +1,11 @@
 export const SECTIONS = [
-  { key: 'identity',  title: 'Identity',        glow: '--glow-identity',  flavor: 'Every adventurer needs a name.' },
-  { key: 'gaming',    title: 'Gaming',           glow: '--glow-gaming',    flavor: 'What worlds have you conquered?' },
-  { key: 'anime',     title: 'Anime',            glow: '--glow-anime',     flavor: 'The culture check.' },
-  { key: 'movies',    title: 'Movies & Series',  glow: '--glow-movies',    flavor: 'What stories shaped you?' },
-  { key: 'hobbies',   title: 'Hobbies',          glow: '--glow-hobbies',   flavor: 'Life beyond the screen.' },
-  { key: 'wildcards', title: 'Wildcards',        glow: '--glow-wildcards', flavor: 'The real personality check.' },
-  { key: 'extras',    title: 'Extras',           glow: '--glow-extras',    flavor: 'The finishing touches.' },
+  { key: 'identity',  title: 'Identity',        glow: '--glow-identity',  flavor: 'Who you are — and how you want to be introduced.' },
+  { key: 'gaming',    title: 'Gaming',           glow: '--glow-gaming',    flavor: 'What worlds have you conquered? Presenters: safe small-talk territory.' },
+  { key: 'anime',     title: 'Anime',            glow: '--glow-anime',     flavor: 'The culture check — sub or dub, we\'re not judging.' },
+  { key: 'movies',    title: 'Movies & Series',  glow: '--glow-movies',    flavor: 'What stories shaped you? Presenters: great for references and icebreakers.' },
+  { key: 'hobbies',   title: 'Hobbies',          glow: '--glow-hobbies',   flavor: 'Side quests IRL. Presenters: conversation starters.' },
+  { key: 'wildcards', title: 'Wildcards',        glow: '--glow-wildcards', flavor: 'The good stuff — hot takes and guilty pleasures.' },
+  { key: 'extras',    title: 'Extras',           glow: '--glow-extras',    flavor: 'Meme of choice and anything else you want on your card.' },
 ];
 
 export const CONSOLES = [

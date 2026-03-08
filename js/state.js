@@ -6,6 +6,8 @@ export const state = {
   identity: {
     name: '',
     handles: [],
+    country: '',
+    bestTimeToPresent: '',
     description: '',
   },
 
@@ -85,7 +87,7 @@ export function save(s) {
 
 export function resetState(s) {
   s.currentSection = 0;
-  s.identity = { name: '', handles: [], description: '' };
+  s.identity = { name: '', handles: [], description: '', country: '', bestTimeToPresent: '' };
   s.gaming = { consoles: [], topGames: [], replayGame: null, favoriteCharacter: '' };
   s.anime = { watches: null, topAnime: [], favoriteCharacterData: null, waifuHusbandoData: null, waifuHusbandoSkip: '', subDub: '', comfortRewatch: null };
   s.movies = { topMovies: [], starWars: null, starWarsTrilogy: '', starWarsSide: '', marvel: null, marvelHero: '', comfortRewatch: null, favoriteQuote: '', favoriteQuoteSource: '' };

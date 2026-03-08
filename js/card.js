@@ -23,6 +23,15 @@ const COLORS = {
   textMuted: '#666680',
 };
 
+function formatTimezoneLine(country, bestTimeToPresent) {
+  const c = (country || '').trim();
+  const t = (bestTimeToPresent || '').trim();
+  if (t && c) return `Lives in ${c}. ${t}`;
+  if (t) return t;
+  if (c) return `Lives in ${c} — probably don't schedule 8am their time and expect them to be human.`;
+  return '';
+}
+
 export async function generateCard(s) {
   const canvas = $('card-canvas');
   const ctx = canvas.getContext('2d');
@@ -213,6 +222,15 @@ function drawHeader(ctx, s) {
     ctx.font = '13px "Avenir Next", sans-serif';
     ctx.fillText(`${s.anime.subDub.charAt(0).toUpperCase() + s.anime.subDub.slice(1)}`, 180, infoY);
     infoY += 18;
+  }
+
+  if (s.identity.country || s.identity.bestTimeToPresent) {
+    ctx.fillStyle = COLORS.textMuted;
+    ctx.font = 'italic 12px "Avenir Next", sans-serif';
+    const timeLine = formatTimezoneLine(s.identity.country, s.identity.bestTimeToPresent);
+    const lines = wrapText(ctx, timeLine, W - 230);
+    lines.slice(0, 2).forEach((line, i) => ctx.fillText(line, 180, infoY + i * 16));
+    infoY += 18 + (lines.length > 1 ? 16 : 0);
   }
 
   if (s.identity.description) {
@@ -607,7 +625,7 @@ export function exportPDF(s) {
 
     const name = s.identity.name || 'character';
     doc.save(`${name.toLowerCase().replace(/\s+/g, '-')}-card.pdf`);
-    showToast('PDF downloaded!');
+    showToast('Your card is ready!');
   };
 
   if (window.jspdf) {

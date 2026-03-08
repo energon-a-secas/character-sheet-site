@@ -93,7 +93,7 @@ export function renderBuilder() {
 
   let html = `<div class="section-card section-entering" style="border-top-color: var(--accent-bright); --section-glow: var(--accent-bright)">
     <div class="section-title" style="color: var(--accent-bright)">Build Your Card</div>
-    <div class="section-flavor">Pick your avatar, choose your highlights, then generate.</div>
+    <div class="section-flavor">Pick your avatar, choose your highlights, then roll for initiative.</div>
 
     <div class="builder-preview">
       <div class="builder-preview-name">${escHtml(state.identity.name || 'Unknown Adventurer')}</div>

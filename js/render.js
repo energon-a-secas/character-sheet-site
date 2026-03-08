@@ -11,7 +11,7 @@ export function render() {
       $('xp-text').textContent = 'Final';
       $('xp-fill').style.width = '100%';
       document.documentElement.style.setProperty('--section-glow', 'var(--accent-bright)');
-      $('btn-next').textContent = 'Generate Card';
+      $('btn-next').textContent = 'Generate my card';
       $('btn-prev').style.visibility = 'visible';
       renderBuilder();
       renderMediaShelf();
@@ -43,7 +43,7 @@ export function renderSectionDots() {
     const fill = getSectionFill(state, sec.key);
     const active = i === state.currentSection;
     const fillClass = fill >= 1 ? ' dot-full' : fill > 0 ? ' dot-partial' : '';
-    return `<button class="section-dot${active ? ' dot-active' : ''}${fillClass}" data-dot="${i}" title="${sec.title}" style="--dot-glow: var(${sec.glow})">
+    return `<button type="button" class="section-dot${active ? ' dot-active' : ''}${fillClass}" data-dot="${i}" title="${sec.title}" aria-label="${sec.title}, section ${i + 1} of ${SECTIONS.length}" style="--dot-glow: var(${sec.glow})">
       <svg viewBox="0 0 20 20"><circle cx="10" cy="10" r="8" fill="none" stroke-width="2" stroke="currentColor" opacity="0.3"/>${fill > 0 ? `<circle cx="10" cy="10" r="8" fill="none" stroke-width="2" stroke="currentColor" stroke-dasharray="${50.3}" stroke-dashoffset="${50.3 * (1 - fill)}" class="dot-fill-ring"/>` : ''}</svg>
     </button>`;
   }).join('');
@@ -53,7 +53,7 @@ export function renderNav() {
   const isFirst = state.currentSection === 0;
   const isLast = state.currentSection === SECTIONS.length - 1;
   $('btn-prev').style.visibility = isFirst ? 'hidden' : 'visible';
-  $('btn-next').textContent = isLast ? 'Generate Card' : 'Next';
+  $('btn-next').textContent = isLast ? 'Generate my card' : 'Next';
 }
 
 export function renderSection(animate) {
@@ -83,12 +83,22 @@ function renderIdentity() {
   const d = state.identity;
   let html = `
     <div class="field-group">
-      <label class="field-label">What's your name?</label>
-      <input class="field-input" type="text" value="${escHtml(d.name)}" data-field="identity.name" placeholder="Your name" maxlength="50">
+      <label class="field-label">What should we call you?</label>
+      <input class="field-input" type="text" value="${escHtml(d.name)}" data-field="identity.name" placeholder="Your name or what you go by" maxlength="50">
     </div>
     <div class="field-group">
-      <label class="field-label">Handles & Social</label>
-      <div class="field-hint">Pick your platforms and add your handle</div>
+      <label class="field-label">Where in the world are you?</label>
+      <div class="field-hint">Optional — so nobody schedules 8am your time by accident.</div>
+      <input class="field-input" type="text" value="${escHtml(d.country)}" data-field="identity.country" placeholder="e.g. Chile, Germany, Remote" maxlength="60">
+    </div>
+    <div class="field-group">
+      <label class="field-label">When are you most human?</label>
+      <div class="field-hint">Serious or silly — e.g. &quot;after coffee&quot; or &quot;probably sleeping&quot;</div>
+      <input class="field-input" type="text" value="${escHtml(d.bestTimeToPresent)}" data-field="identity.bestTimeToPresent" placeholder="e.g. When my coffee kicks in (UTC-3)" maxlength="120">
+    </div>
+    <div class="field-group">
+      <label class="field-label">Where can folks find you?</label>
+      <div class="field-hint">Pick platforms and drop your handle — for anyone who wants to connect</div>
       <div class="platform-grid">
         ${PLATFORMS.map(p => {
           const existing = d.handles.find(h => h.platform === p.id);
@@ -100,8 +110,9 @@ function renderIdentity() {
       </div>
     </div>
     <div class="field-group">
-      <label class="field-label">Tell us about yourself</label>
-      <textarea class="field-input" data-field="identity.description" placeholder="A short bio, what you do, what you're into..." maxlength="300">${escHtml(d.description)}</textarea>
+      <label class="field-label">A line or two for whoever's presenting</label>
+      <div class="field-hint">Helps tailor the vibe — short bio, what you do, what you're into.</div>
+      <textarea class="field-input" data-field="identity.description" placeholder="e.g. Backend dev, coffee addict, always has a book" maxlength="300">${escHtml(d.description)}</textarea>
     </div>`;
   return html;
 }
@@ -127,7 +138,7 @@ function renderGaming() {
     html += `<div class="media-cards">${d.topGames.map((g, i) => renderMediaCard(g, 'gaming.topGames', i)).join('')}</div>`;
   }
 
-  html += renderSearchField('A game you\'d love to play for the first time again?', 'game', 'gaming.replayGame', d.replayGame ? [d.replayGame] : [], 1, 'Search games...');
+  html += renderSearchField('One game you\'d wipe from memory just to experience again?', 'game', 'gaming.replayGame', d.replayGame ? [d.replayGame] : [], 1, 'Search games...');
 
   html += `
     <div class="field-group">
@@ -145,7 +156,7 @@ function renderAnime() {
       <label class="field-label">Do you watch anime?</label>
       <div class="toggle-row">
         <button class="toggle-btn${d.watches === true ? ' active' : ''}" data-toggle="anime.watches" data-val="true">Yes</button>
-        <button class="toggle-btn${d.watches === false ? ' active' : ''}" data-toggle="anime.watches" data-val="false">Not really</button>
+        <button class="toggle-btn${d.watches === false ? ' active' : ''}" data-toggle="anime.watches" data-val="false">Nah</button>
       </div>
     </div>`;
 
@@ -184,7 +195,8 @@ function renderAnime() {
 
 function renderMovies() {
   const d = state.movies;
-  let html = '';
+  let html = `
+    <div class="field-hint section-hint" style="margin-bottom:var(--space-4)">Presenters: your picks here are perfect for references and icebreakers.</div>`;
 
   html += renderSearchField('Top 3 movies or series', 'movie', 'movies.topMovies', d.topMovies, 3, 'Search movies and series...');
 
@@ -197,7 +209,7 @@ function renderMovies() {
       <label class="field-label">Star Wars fan?</label>
       <div class="toggle-row">
         <button class="toggle-btn${d.starWars === true ? ' active' : ''}" data-toggle="movies.starWars" data-val="true">Yes</button>
-        <button class="toggle-btn${d.starWars === false ? ' active' : ''}" data-toggle="movies.starWars" data-val="false">Not really</button>
+        <button class="toggle-btn${d.starWars === false ? ' active' : ''}" data-toggle="movies.starWars" data-val="false">Nah</button>
       </div>
     </div>`;
 
@@ -228,7 +240,7 @@ function renderMovies() {
       <label class="field-label">Marvel fan?</label>
       <div class="toggle-row">
         <button class="toggle-btn${d.marvel === true ? ' active' : ''}" data-toggle="movies.marvel" data-val="true">Yes</button>
-        <button class="toggle-btn${d.marvel === false ? ' active' : ''}" data-toggle="movies.marvel" data-val="false">Not really</button>
+        <button class="toggle-btn${d.marvel === false ? ' active' : ''}" data-toggle="movies.marvel" data-val="false">Nah</button>
       </div>
     </div>`;
 
@@ -259,6 +271,7 @@ function renderHobbies() {
   let html = `
     <div class="field-group">
       <label class="field-label">What do you do for fun?</label>
+      <div class="field-hint">Presenters: these make great conversation starters.</div>
       <div class="hobby-grid">
         ${HOBBY_OPTIONS.map(h => `<button class="hobby-tag${d.selected.includes(h) ? ' active' : ''}" data-hobby="${escHtml(h)}">${escHtml(h)}</button>`).join('')}
       </div>
@@ -283,7 +296,7 @@ function renderWildcards() {
     return `
     <div class="field-group">
       <label class="field-label">${escHtml(w.label)}</label>
-      <textarea class="field-input" data-wildcard="${w.key}" placeholder="Type your answer..." maxlength="200"${isSkipped ? ' disabled' : ''}>${escHtml(val.value)}</textarea>
+      <textarea class="field-input" data-wildcard="${w.key}" placeholder="Go on, we won't judge" maxlength="200"${isSkipped ? ' disabled' : ''}>${escHtml(val.value)}</textarea>
       <div class="escape-row">
         <button class="escape-btn${val.skip === 'cant' ? ' active' : ''}" data-escape-wc="${w.key}" data-val="cant">Can't think of it right now</button>
         <button class="escape-btn${val.skip === 'skip' ? ' active' : ''}" data-escape-wc="${w.key}" data-val="skip">Prefer not to say</button>
@@ -296,9 +309,9 @@ function renderExtras() {
   const d = state.extras;
   return `
     <div class="field-group">
-      <label class="field-label">A meme or cultural reference you're fond of</label>
-      <div class="field-hint">Drop a link to a meme, video, or anything that represents your vibe</div>
-      <input class="field-input" type="url" value="${escHtml(d.memeLink)}" data-field="extras.memeLink" placeholder="https://..." maxlength="300">
+      <label class="field-label">A meme or reference that lives in your head rent-free</label>
+      <div class="field-hint">So presenters get your vibe — link or describe.</div>
+      <input class="field-input" type="url" value="${escHtml(d.memeLink)}" data-field="extras.memeLink" placeholder="Paste a link to a meme, video, or vibe" maxlength="300">
       <input class="field-input" type="text" value="${escHtml(d.memeNote)}" data-field="extras.memeNote" placeholder="What is it / why it matters" maxlength="120" style="margin-top:var(--space-2)">
     </div>`;
 }
@@ -357,7 +370,7 @@ export function renderMediaShelf() {
 
   shelf.style.display = '';
   shelf.innerHTML = `
-    <div class="shelf-label">Your Favorites</div>
+    <div class="shelf-label">Your picks</div>
     <div class="shelf-scroll">
       ${allMedia.map(m => `
         <div class="shelf-item shelf-item--${m.type}">

@@ -304,7 +304,7 @@ function getNestedValue(obj, path) {
 
 window.startOver = function() {
   const hasData = state.identity.name || state.gaming.topGames.length || state.anime.topAnime.length || state.movies.topMovies.length || state.hobbies.selected.length;
-  if (!hasData || confirm('Start fresh? All your answers will be cleared.')) {
+  if (!hasData || confirm('Start over? Your answers will be cleared — you can always roll the dice again.')) {
     resetState(state);
     render();
     window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -386,7 +386,7 @@ window.nextSection = async function() {
     $('xp-text').textContent = 'Final';
     $('xp-fill').style.width = '100%';
     document.documentElement.style.setProperty('--section-glow', 'var(--accent-bright)');
-    $('btn-next').textContent = 'Generate Card';
+    $('btn-next').textContent = 'Generate my card';
     $('btn-prev').style.visibility = 'visible';
     renderBuilder();
     window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -422,7 +422,7 @@ window.downloadCard = function() {
     link.download = `${name.toLowerCase().replace(/\s+/g, '-')}-card.png`;
     link.href = canvas.toDataURL('image/png');
     link.click();
-    showToast('Card downloaded!');
+    showToast('Your card is ready!');
   } catch {
     showToast('Cannot export: images blocked by CORS');
   }

@@ -6,7 +6,7 @@
   <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' cdnjs.cloudflare.com; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: media.rawg.io image.tmdb.org cdn.myanimelist.net; connect-src 'self' charactersheet-api.neorgon.workers.dev; frame-ancestors 'none'">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Character Sheet — Know Your Party</title>
-  <meta name="description" content="RPG-style personality interview. Discover gaming habits, anime picks, movie tastes, hobbies, and hot takes. Export your character card">
+  <meta name="description" content="Share who you are and how you like to be presented to. Build your RPG-style card for remote teams — timezone, vibes, and how to run meetings that stick.">
   <meta name="theme-color" content="#040714">
   <link rel="icon" type="image/x-icon" href="favicon.ico" />
   <link rel="stylesheet" href="css/style.css">
@@ -22,7 +22,7 @@
       </a>
       <div>
         <h1>Character Sheet</h1>
-        <div class="header-subtitle">Know Your Party</div>
+        <div class="header-subtitle">About you — and how to present to you.</div>
       </div>
     </div>
     <a class="header-home" href="https://neorgon.com/" title="neorgon.com" aria-label="Neorgon home">
@@ -39,7 +39,7 @@
       <div class="xp-bar-wrapper">
         <div class="xp-bar-label">
           <span id="section-label">Identity</span>
-          <span id="xp-text">0 / 6</span>
+          <span id="xp-text">1 / 7</span>
         </div>
         <div class="xp-bar-track">
           <div class="xp-bar-fill" id="xp-fill" style="width:0%"></div>
@@ -54,8 +54,8 @@
       <div class="nav-buttons" id="nav-buttons">
         <button class="btn btn-secondary" id="btn-prev" onclick="prevSection()">Back</button>
         <div class="nav-center">
-          <button class="btn btn-random" id="btn-random" onclick="randomFill()" title="Fill with random test data">Randomize</button>
-          <button class="btn btn-restart" id="btn-restart" onclick="startOver()" title="Clear all data and start fresh">Start Over</button>
+          <button class="btn btn-random" id="btn-random" onclick="randomFill()" title="Roll the dice — try random answers">Randomize</button>
+          <button class="btn btn-restart" id="btn-restart" onclick="startOver()" title="Clear and start over">Start Over</button>
         </div>
         <button class="btn btn-primary" id="btn-next" onclick="nextSection()">Next</button>
       </div>
@@ -70,7 +70,7 @@
   <!-- Character Card Modal -->
   <div class="modal-overlay" id="card-modal">
     <div class="modal-content card-modal-content">
-      <button class="modal-close" onclick="closeCardModal()">&times;</button>
+      <button class="modal-close" onclick="closeCardModal()" aria-label="Close card preview">&times;</button>
       <canvas id="card-canvas" width="800" height="1100"></canvas>
       <div class="card-modal-actions">
         <button class="btn btn-primary" onclick="downloadCard()">Download PNG</button>
