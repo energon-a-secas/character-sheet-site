@@ -2,3 +2,6 @@ env.js
 .DS_Store
 node_modules/
 .wrangler/
+
+# Claude AI guidance (maintained centrally in .claude/project-claudes/)
+CLAUDE.md
