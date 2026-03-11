@@ -1,5 +1,5 @@
 import { state } from './state.js';
-import { SECTIONS, CONSOLES, PLATFORMS, HOBBY_OPTIONS, WILDCARDS, getSectionFill } from './data.js';
+import { SECTIONS, CONSOLES, PLATFORMS, HOBBY_OPTIONS, WILDCARDS, FREE_TIME_OPTIONS, getSectionFill } from './data.js';
 import { escHtml, $ } from './utils.js';
 
 let lastRenderedSection = -1;
@@ -73,6 +73,7 @@ export function renderSection(animate) {
     case 'hobbies':   html += renderHobbies(); break;
     case 'wildcards': html += renderWildcards(); break;
     case 'extras':    html += renderExtras(); break;
+    case 'intro':     html += renderIntro(); break;
   }
 
   html += '</div>';
@@ -314,6 +315,62 @@ function renderExtras() {
       <input class="field-input" type="url" value="${escHtml(d.memeLink)}" data-field="extras.memeLink" placeholder="Paste a link to a meme, video, or vibe" maxlength="300">
       <input class="field-input" type="text" value="${escHtml(d.memeNote)}" data-field="extras.memeNote" placeholder="What is it / why it matters" maxlength="120" style="margin-top:var(--space-2)">
     </div>`;
+}
+
+function renderIntro() {
+  const d = state.intro;
+  const name = state.identity.name;
+
+  let html = `
+    <div class="field-group">
+      <label class="field-label">What do you do for work?</label>
+      <input class="field-input" type="text" value="${escHtml(d.jobTitle)}" data-field="intro.jobTitle" placeholder="Software Engineer, Designer, PM..." maxlength="80">
+    </div>
+    <div class="intro-row">
+      <div class="field-group">
+        <label class="field-label">Years of experience?</label>
+        <input class="field-input" type="text" value="${escHtml(d.yearsExperience)}" data-field="intro.yearsExperience" placeholder="5+ years, since forever..." maxlength="30">
+      </div>
+      <div class="field-group">
+        <label class="field-label">Previously at?</label>
+        <div class="field-hint">Optional</div>
+        <input class="field-input" type="text" value="${escHtml(d.prevCompany)}" data-field="intro.prevCompany" placeholder="Company you came from" maxlength="60">
+      </div>
+    </div>
+    <div class="field-group">
+      <label class="field-label">Which city?</label>
+      <div class="field-hint">More specific than your country — helps with timezone context</div>
+      <input class="field-input" type="text" value="${escHtml(d.city)}" data-field="intro.city" placeholder="Santiago, Berlin, Remote..." maxlength="60">
+    </div>
+    <div class="field-group">
+      <label class="field-label">In my free time I...</label>
+      <div class="field-hint">Pick one (or pick the one that makes people ask questions)</div>
+      <div class="freetime-grid">
+        ${FREE_TIME_OPTIONS.map(o => `<button type="button" class="freetime-pill${d.freeTimeChoice === o.id ? ' active' : ''}" data-choice="intro.freeTimeChoice" data-val="${escHtml(o.id)}">${escHtml(o.label)}</button>`).join('')}
+      </div>
+      ${d.freeTimeChoice === 'custom' ? `
+      <input class="field-input" type="text" value="${escHtml(d.freeTimeCustom)}" data-field="intro.freeTimeCustom" placeholder="Tell us what you actually do..." maxlength="80" style="margin-top:var(--space-3)">` : ''}
+    </div>
+    <div class="field-group">
+      <label class="field-label">Two Truths, One Lie</label>
+      <div class="field-hint">Write two things that are true about you and one sneaky lie — we'll shuffle them on the slide.</div>
+      <div class="truth-lie-section">
+        <div class="truth-card">
+          <div class="statement-badge">✓ Truth</div>
+          <textarea class="field-input" data-field="intro.truth1" placeholder="Something true about you..." maxlength="120">${escHtml(d.truth1)}</textarea>
+        </div>
+        <div class="truth-card">
+          <div class="statement-badge">✓ Truth</div>
+          <textarea class="field-input" data-field="intro.truth2" placeholder="Another true thing..." maxlength="120">${escHtml(d.truth2)}</textarea>
+        </div>
+        <div class="lie-card">
+          <div class="statement-badge">✗ Lie</div>
+          <textarea class="field-input" data-field="intro.lie" placeholder="And the sneaky lie..." maxlength="120">${escHtml(d.lie)}</textarea>
+        </div>
+      </div>
+    </div>`;
+
+  return html;
 }
 
 function renderMediaCard(item, stateKey, idx) {

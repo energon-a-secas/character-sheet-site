@@ -6,6 +6,7 @@ export const SECTIONS = [
   { key: 'hobbies',   title: 'Hobbies',          glow: '--glow-hobbies',   flavor: 'Side quests IRL. Presenters: conversation starters.' },
   { key: 'wildcards', title: 'Wildcards',        glow: '--glow-wildcards', flavor: 'The good stuff — hot takes and guilty pleasures.' },
   { key: 'extras',    title: 'Extras',           glow: '--glow-extras',    flavor: 'Meme of choice and anything else you want on your card.' },
+  { key: 'intro',     title: 'Your Story',       glow: '--glow-intro',     flavor: 'The 30-second intro — your job, your vibe, and a game for the crowd.' },
 ];
 
 export const CONSOLES = [
@@ -39,6 +40,26 @@ export const HOBBY_OPTIONS = [
   'Traveling', 'Pets', 'Streaming', 'Podcasts', 'Languages',
   'YouTube', 'Coding', 'Video Editing', 'Collecting', 'Meditation',
   'Martial Arts', 'Climbing', 'Cycling', 'Fishing', 'Cosplay',
+];
+
+export const FREE_TIME_OPTIONS = [
+  { id: 'dad-stuff',          label: '👨‍👧 Dad stuff' },
+  { id: 'mom-stuff',          label: '👩‍👧 Mom stuff' },
+  { id: 'gardening',          label: '🌱 Gardening' },
+  { id: 'existential-crisis', label: '🌀 Existential crisis' },
+  { id: 'doomscrolling',      label: '📱 Doomscrolling' },
+  { id: 'gaming',             label: '🎮 Gaming (obviously)' },
+  { id: 'cooking',            label: '🍳 Cooking' },
+  { id: 'running',            label: '🏃 Running (from responsibilities)' },
+  { id: 'reading',            label: '📚 Reading (not meetings)' },
+  { id: 'overthinking',       label: '🤔 Overthinking everything' },
+  { id: 'napping',            label: '😴 Napping professionally' },
+  { id: 'binge-watching',     label: '📺 Binge-watching' },
+  { id: 'gym',                label: '💪 Going to the gym' },
+  { id: 'cat-content',        label: '🐱 Watching cat videos' },
+  { id: 'traveling',          label: '✈️ Traveling' },
+  { id: 'side-projects',      label: '🔧 Side projects' },
+  { id: 'custom',             label: '✏️ Something else...' },
 ];
 
 export const WILDCARDS = [
@@ -147,6 +168,13 @@ export function getSectionFill(s, key) {
     case 'extras': {
       let f = 0, t = 1;
       if (s.extras.memeLink || s.extras.memeNote) f++;
+      return f / t;
+    }
+    case 'intro': {
+      let f = 0, t = 3;
+      if (s.intro.jobTitle) f++;
+      if (s.intro.freeTimeChoice) f++;
+      if (s.intro.truth1 && s.intro.truth2 && s.intro.lie) f++;
       return f / t;
     }
     default: return 0;

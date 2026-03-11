@@ -60,6 +60,18 @@ export const state = {
     memeNote: '',
   },
 
+  intro: {
+    jobTitle: '',
+    yearsExperience: '',
+    prevCompany: '',
+    city: '',
+    freeTimeChoice: '',
+    freeTimeCustom: '',
+    truth1: '',
+    truth2: '',
+    lie: '',
+  },
+
   showBuilder: false,
   cardConfig: {
     avatarId: '',
@@ -98,6 +110,7 @@ export function resetState(s) {
     threeApps: { value: '', skip: '' }, breakfastSTier: { value: '', skip: '' },
   };
   s.extras = { memeLink: '', memeNote: '' };
+  s.intro = { jobTitle: '', yearsExperience: '', prevCompany: '', city: '', freeTimeChoice: '', freeTimeCustom: '', truth1: '', truth2: '', lie: '' };
   s.showBuilder = false;
   s.cardConfig = { avatarId: '', highlightedMedia: [], showSocials: true, showCollection: true };
   localStorage.removeItem(STORAGE_KEY);

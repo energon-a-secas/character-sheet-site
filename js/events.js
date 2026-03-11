@@ -4,6 +4,7 @@ import { render, renderSection, renderProgressBar, renderNav, renderMediaShelf, 
 import { renderBuilder, getAllHighlightableMedia } from './builder.js';
 import { searchGames, searchAnime, searchAnimeCharacters, searchMovies } from './api.js';
 import { generateCard, exportPDF } from './card.js';
+import { downloadPresentation } from './present.js';
 import { debounce, $, showToast } from './utils.js';
 
 const debouncedSearch = debounce(handleSearch, 350);
@@ -430,4 +431,8 @@ window.downloadCard = function() {
 
 window.downloadPDF = function() {
   exportPDF(state);
+};
+
+window.generatePresentation = function() {
+  downloadPresentation(state);
 };

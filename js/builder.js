@@ -142,6 +142,11 @@ export function renderBuilder() {
         </label>
       </div>
     </div>
+
+    <div class="builder-present-row">
+      <button class="btn btn-present" onclick="generatePresentation()">&#9654; Generate Intro Slide</button>
+      <div class="builder-present-hint">Downloads a standalone HTML presentation with your story &amp; the Two Truths One Lie game</div>
+    </div>
   </div>`;
 
   container.innerHTML = html;
