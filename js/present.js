@@ -1,6 +1,160 @@
 import { FREE_TIME_OPTIONS, getRPGClass } from './data.js';
 import { showToast } from './utils.js';
 
+export function generateScript(s) {
+  const name = s.identity.name || 'Unknown';
+  const city = s.intro?.city || '';
+  const country = s.identity.country || '';
+  const location = [city, country].filter(Boolean).join(', ');
+  const jobTitle = s.intro?.jobTitle || '';
+  const yearsExp = s.intro?.yearsExperience || '';
+  const prevCompany = s.intro?.prevCompany || '';
+  const careerHighlight = s.intro?.careerHighlight || '';
+  const motto = s.intro?.motto || '';
+  const unknownFact = s.intro?.unknownFact || '';
+  const currentlyLearning = s.intro?.currentlyLearning || '';
+  const rpgClass = getRPGClass(s);
+
+  const freeTimeId = s.intro?.freeTimeChoice || '';
+  const freeTimeCustom = s.intro?.freeTimeCustom || '';
+  const freeTimeOption = FREE_TIME_OPTIONS.find(o => o.id === freeTimeId);
+  const freeTimeLabel = freeTimeId === 'custom' ? freeTimeCustom : (freeTimeOption?.label || '');
+
+  const hobbies = [...s.hobbies.selected.slice(0, 6)];
+  if (s.hobbies.custom) hobbies.push(s.hobbies.custom);
+
+  const topGames = s.gaming.topGames.slice(0, 3);
+  const topAnime = s.anime.topAnime.slice(0, 3);
+  const topMovies = s.movies.topMovies.slice(0, 3);
+
+  const hotTakes = Object.values(s.wildcards || {})
+    .filter(w => w.value && !w.skip)
+    .slice(0, 3)
+    .map(w => w.value);
+
+  const truth1 = s.intro?.truth1 || '';
+  const truth2 = s.intro?.truth2 || '';
+  const lie = s.intro?.lie || '';
+  const hasGame = truth1 && truth2 && lie;
+
+  const lines = [];
+
+  lines.push(`# ${name} — Presenter Script`);
+  lines.push('');
+  lines.push('> Copy this script to your notes app. Read naturally — don\'t read it word for word.');
+  lines.push('');
+  lines.push('---');
+  lines.push('');
+
+  // --- Intro ---
+  lines.push('## 👋 Introduction');
+  lines.push('');
+  const jobPart = [jobTitle, yearsExp ? `${yearsExp} years of experience` : ''].filter(Boolean).join(', ');
+  const introParts = [`This is **${name}**`];
+  if (jobPart) introParts.push(jobPart);
+  if (location) introParts.push(`based in ${location}`);
+  if (prevCompany) introParts.push(`previously at ${prevCompany}`);
+  lines.push(introParts.join(' — ') + '.');
+  lines.push('');
+  lines.push(`*RPG class: **${rpgClass}***`);
+  lines.push('');
+
+  // --- Career ---
+  if (careerHighlight || motto) {
+    lines.push('## 💼 Career');
+    lines.push('');
+    if (careerHighlight) {
+      lines.push(`**Career highlight:** "${careerHighlight}"`);
+      lines.push('');
+    }
+    if (motto) {
+      lines.push(`**Work motto:** "${motto}"`);
+      lines.push('');
+    }
+  }
+
+  // --- Personal ---
+  if (unknownFact || currentlyLearning) {
+    lines.push('## 🔍 Personal Side');
+    lines.push('');
+    if (unknownFact) {
+      lines.push(`**Something most people don't know:** "${unknownFact}"`);
+      lines.push('');
+    }
+    if (currentlyLearning) {
+      lines.push(`**Currently learning:** ${currentlyLearning}`);
+      lines.push('');
+    }
+  }
+
+  // --- Free time & hobbies ---
+  if (freeTimeLabel || hobbies.length) {
+    lines.push('## 🎮 Free Time');
+    lines.push('');
+    if (freeTimeLabel) {
+      lines.push(`Outside of work, ${name} is all about **${freeTimeLabel}**.`);
+      lines.push('');
+    }
+    if (hobbies.length) {
+      lines.push(`Also into: ${hobbies.map(h => `**${h}**`).join(', ')}.`);
+      lines.push('');
+    }
+  }
+
+  // --- Top picks ---
+  const hasPicks = topGames.length || topAnime.length || topMovies.length;
+  if (hasPicks) {
+    lines.push('## 🏆 Top Picks');
+    lines.push('');
+    if (topGames.length) {
+      lines.push(`**Games:** ${topGames.map(g => g.name).join(', ')}`);
+    }
+    if (topAnime.length) {
+      lines.push(`**Anime:** ${topAnime.map(a => a.name).join(', ')}`);
+    }
+    if (topMovies.length) {
+      lines.push(`**Movies/Series:** ${topMovies.map(m => m.name).join(', ')}`);
+    }
+    lines.push('');
+  }
+
+  // --- Hot takes ---
+  if (hotTakes.length) {
+    lines.push('## 🔥 Hot Takes');
+    lines.push('');
+    lines.push('*Read these out loud and watch the room react:*');
+    lines.push('');
+    hotTakes.forEach(t => lines.push(`- "${t}"`));
+    lines.push('');
+  }
+
+  // --- Two truths one lie ---
+  if (hasGame) {
+    lines.push('## 🎲 Two Truths, One Lie');
+    lines.push('');
+    lines.push('*Ask the group to guess which one is false:*');
+    lines.push('');
+    // Shuffle order for the script (don't reveal which is the lie)
+    const stmts = [
+      { text: truth1, tag: '' },
+      { text: truth2, tag: '' },
+      { text: lie, tag: '*(this is the lie)*' },
+    ].sort(() => Math.random() - 0.5);
+    stmts.forEach((st, i) => {
+      lines.push(`**${String.fromCharCode(65 + i)}.** ${st.text} ${st.tag}`);
+    });
+    lines.push('');
+    lines.push('*After the group guesses, reveal the lie.*');
+    lines.push('');
+  }
+
+  lines.push('---');
+  lines.push('');
+  lines.push(`*Generated by [Character Sheet](https://charactersheet.neorgon.com/)*`);
+
+  return lines.join('\n');
+}
+
 function esc(str) {
   return String(str ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
 }

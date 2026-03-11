@@ -4,7 +4,7 @@ import { render, renderSection, renderProgressBar, renderNav, renderMediaShelf, 
 import { renderBuilder, getAllHighlightableMedia } from './builder.js';
 import { searchGames, searchAnime, searchAnimeCharacters, searchMovies } from './api.js';
 import { generateCard, exportPDF } from './card.js';
-import { downloadPresentation } from './present.js';
+import { downloadPresentation, generateScript } from './present.js';
 import { debounce, $, showToast } from './utils.js';
 
 const debouncedSearch = debounce(handleSearch, 350);
@@ -575,6 +575,13 @@ function playRevealSound() {
   } catch { /* no audio support */ }
 }
 
+window.skipIntro = function() {
+  // Jump from Your Story (index 1) directly to Gaming (index 2)
+  state.currentSection = 2;
+  save(state);
+  render();
+};
+
 window.nextSection = async function() {
   if (state.showBuilder) {
     $('card-modal').classList.add('open');
@@ -644,4 +651,22 @@ window.downloadPDF = function() {
 
 window.generatePresentation = function() {
   downloadPresentation(state);
+};
+
+window.copyScript = async function() {
+  const md = generateScript(state);
+  try {
+    await navigator.clipboard.writeText(md);
+    showToast('Presenter script copied to clipboard!');
+  } catch {
+    // Fallback for browsers that block clipboard
+    const ta = document.createElement('textarea');
+    ta.value = md;
+    ta.style.cssText = 'position:fixed;opacity:0;pointer-events:none';
+    document.body.appendChild(ta);
+    ta.select();
+    document.execCommand('copy');
+    document.body.removeChild(ta);
+    showToast('Presenter script copied!');
+  }
 };

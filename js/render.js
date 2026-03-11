@@ -100,6 +100,9 @@ export function renderSection(animate) {
   }
 
   html += '</div>';
+  if (sec.key === 'intro') {
+    html += `<div class="skip-intro-row"><button class="skip-intro-btn" onclick="skipIntro()">Skip — jump to the fun stuff →</button></div>`;
+  }
   container.innerHTML = html;
 }
 
@@ -313,7 +316,8 @@ function renderHobbies() {
 
 function renderWildcards() {
   const d = state.wildcards;
-  return WILDCARDS.map(w => {
+  const i = state.intro;
+  const wildcardHtml = WILDCARDS.map(w => {
     const val = d[w.key];
     if (!val) return '';
     const isSkipped = val.skip !== '';
@@ -327,6 +331,28 @@ function renderWildcards() {
       </div>
     </div>`;
   }).join('');
+
+  const truthLieHtml = `
+    <div class="story-group" style="margin-top:var(--space-6)">
+      <div class="story-group-label">&#x1F3B2; Two Truths, One Lie</div>
+      <div class="field-hint" style="margin-bottom:var(--space-4)">Write two things that are true and one sneaky lie — the crowd guesses which is which.</div>
+      <div class="truth-lie-section">
+        <div class="truth-card">
+          <div class="statement-badge">&#x2713; Truth</div>
+          <textarea class="field-input" data-field="intro.truth1" placeholder="Something true about you..." maxlength="120">${escHtml(i.truth1)}</textarea>
+        </div>
+        <div class="truth-card">
+          <div class="statement-badge">&#x2713; Truth</div>
+          <textarea class="field-input" data-field="intro.truth2" placeholder="Another true thing..." maxlength="120">${escHtml(i.truth2)}</textarea>
+        </div>
+        <div class="lie-card">
+          <div class="statement-badge">&#x2717; Lie</div>
+          <textarea class="field-input" data-field="intro.lie" placeholder="And the sneaky lie..." maxlength="120">${escHtml(i.lie)}</textarea>
+        </div>
+      </div>
+    </div>`;
+
+  return wildcardHtml + truthLieHtml;
 }
 
 function renderExtras() {
@@ -392,7 +418,7 @@ function renderIntro() {
     </div>
 
     <div class="story-group">
-      <div class="story-group-label">&#x26A1; Fun Facts</div>
+      <div class="story-group-label">&#x26A1; Free Time</div>
       <div class="field-group">
         <label class="field-label">In my free time I...</label>
         <div class="field-hint">Pick one (or pick the one that makes people ask questions)</div>
@@ -401,24 +427,6 @@ function renderIntro() {
         </div>
         ${d.freeTimeChoice === 'custom' ? `
         <input class="field-input" type="text" value="${escHtml(d.freeTimeCustom)}" data-field="intro.freeTimeCustom" placeholder="Tell us what you actually do..." maxlength="80" style="margin-top:var(--space-3)">` : ''}
-      </div>
-      <div class="field-group">
-        <label class="field-label">Two Truths, One Lie</label>
-        <div class="field-hint">Write two things that are true about you and one sneaky lie — we'll shuffle them on the slide.</div>
-        <div class="truth-lie-section">
-          <div class="truth-card">
-            <div class="statement-badge">&#x2713; Truth</div>
-            <textarea class="field-input" data-field="intro.truth1" placeholder="Something true about you..." maxlength="120">${escHtml(d.truth1)}</textarea>
-          </div>
-          <div class="truth-card">
-            <div class="statement-badge">&#x2713; Truth</div>
-            <textarea class="field-input" data-field="intro.truth2" placeholder="Another true thing..." maxlength="120">${escHtml(d.truth2)}</textarea>
-          </div>
-          <div class="lie-card">
-            <div class="statement-badge">&#x2717; Lie</div>
-            <textarea class="field-input" data-field="intro.lie" placeholder="And the sneaky lie..." maxlength="120">${escHtml(d.lie)}</textarea>
-          </div>
-        </div>
       </div>
     </div>`;
 

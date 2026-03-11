@@ -1,12 +1,12 @@
 export const SECTIONS = [
-  { key: 'identity',  title: 'Identity',        glow: '--glow-identity',  flavor: 'Who you are — and how you want to be introduced.' },
-  { key: 'gaming',    title: 'Gaming',           glow: '--glow-gaming',    flavor: 'What worlds have you conquered? Presenters: safe small-talk territory.' },
-  { key: 'anime',     title: 'Anime',            glow: '--glow-anime',     flavor: 'The culture check — sub or dub, we\'re not judging.' },
-  { key: 'movies',    title: 'Movies & Series',  glow: '--glow-movies',    flavor: 'What stories shaped you? Presenters: great for references and icebreakers.' },
-  { key: 'hobbies',   title: 'Hobbies',          glow: '--glow-hobbies',   flavor: 'Side quests IRL. Presenters: conversation starters.' },
-  { key: 'wildcards', title: 'Wildcards',        glow: '--glow-wildcards', flavor: 'The good stuff — hot takes and guilty pleasures.' },
-  { key: 'extras',    title: 'Extras',           glow: '--glow-extras',    flavor: 'Meme of choice and anything else you want on your card.' },
-  { key: 'intro',     title: 'Your Story',       glow: '--glow-intro',     flavor: 'The 30-second intro — your job, your vibe, and a game for the crowd.' },
+  { key: 'identity',  title: 'Identity',           glow: '--glow-identity',  flavor: 'Who you are — and how you want to be introduced.' },
+  { key: 'intro',     title: 'Your Story',          glow: '--glow-intro',     flavor: 'The 30-second intro — your job, your vibe, your city.' },
+  { key: 'gaming',    title: 'Gaming',              glow: '--glow-gaming',    flavor: 'What worlds have you conquered? Presenters: safe small-talk territory.' },
+  { key: 'anime',     title: 'Anime',               glow: '--glow-anime',     flavor: 'The culture check — sub or dub, we\'re not judging.' },
+  { key: 'movies',    title: 'Movies & Series',     glow: '--glow-movies',    flavor: 'What stories shaped you? Presenters: great for references and icebreakers.' },
+  { key: 'hobbies',   title: 'Hobbies',             glow: '--glow-hobbies',   flavor: 'Side quests IRL. Presenters: conversation starters.' },
+  { key: 'wildcards', title: 'Hot Takes & Games',   glow: '--glow-wildcards', flavor: 'Unpopular opinions, guilty pleasures, and one sneaky lie — who can guess it?' },
+  { key: 'extras',    title: 'Extras',              glow: '--glow-extras',    flavor: 'Meme of choice and anything else you want on your card.' },
 ];
 
 export const CONSOLES = [
@@ -163,7 +163,8 @@ export function getSectionFill(s, key) {
     }
     case 'wildcards': {
       const filled = Object.values(s.wildcards).filter(w => w.value || w.skip).length;
-      return filled / 6;
+      const hasGame = (s.intro.truth1 && s.intro.truth2 && s.intro.lie) ? 1 : 0;
+      return Math.min((filled + hasGame) / 7, 1);
     }
     case 'extras': {
       let f = 0, t = 1;
@@ -171,16 +172,11 @@ export function getSectionFill(s, key) {
       return f / t;
     }
     case 'intro': {
-      let f = 0, t = 6;
-      // Career group
+      let f = 0, t = 5;
       if (s.intro.jobTitle) f++;
       if (s.intro.careerHighlight) f++;
-      // Personal group
       if (s.intro.motto || s.intro.unknownFact || s.intro.currentlyLearning) f++;
-      // Fun Facts group
       if (s.intro.freeTimeChoice) f++;
-      if (s.intro.truth1 && s.intro.truth2 && s.intro.lie) f++;
-      // City/experience bonus
       if (s.intro.city || s.intro.yearsExperience) f++;
       return Math.min(f / t, 1);
     }

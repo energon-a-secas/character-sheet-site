@@ -122,6 +122,72 @@ const CHARACTERS = [
   'Solid Snake', 'Arthur Morgan', 'Lara Croft', 'Joel Miller', 'Commander Shepard',
 ];
 
+const JOB_TITLES = [
+  'Senior Software Engineer', 'Product Manager', 'UX Designer', 'Data Engineer',
+  'DevOps Lead', 'Backend Developer', 'Frontend Engineer', 'Engineering Manager',
+];
+
+const YEARS_EXP = ['2 years', '4 years', '7+ years', '10 years', 'since I was 15', 'forever'];
+
+const PREV_COMPANIES = ['Airbnb', 'Shopify', 'Mercado Libre', 'Rappi', 'Globant', 'Spotify', 'Nubank', ''];
+
+const CITIES = ['Santiago', 'Buenos Aires', 'São Paulo', 'Berlin', 'Toronto', 'Remote', 'Mexico City', 'Bogotá'];
+
+const CAREER_HIGHLIGHTS = [
+  'Led the migration of a monolith to microservices — took 6 months and aged me 10 years.',
+  'Built a feature that reduced churn by 15%. Finally got to say "I shipped this" at a dinner party.',
+  'Grew the team from 3 to 12 engineers while keeping the CI green.',
+  'Launched a product used by 500k people. Still scared every deploy.',
+  'Rewrote the entire data pipeline in a weekend. Would not recommend.',
+];
+
+const MOTTOS = [
+  'Ship it and iterate. Done is better than perfect.',
+  'Be the engineer you needed when you were starting out.',
+  'Strong opinions, loosely held — especially about tabs vs spaces.',
+  'Vibes are a valid architecture consideration.',
+  'If it works, don\'t touch it. If it doesn\'t, blame DNS.',
+];
+
+const UNKNOWN_FACTS = [
+  'I was a competitive swimmer in high school. Still use that breathing technique in code reviews.',
+  'I can read music but have never learned an instrument.',
+  'I have a spreadsheet for everything. Everything.',
+  'I once lived without internet for a month. Best and worst thing I ever did.',
+  'I started learning Japanese on a dare. Three years later, I\'m still at it.',
+];
+
+const LEARNING_NOW = [
+  'Rust — because apparently I enjoy suffering.',
+  'Piano. Turns out muscle memory applies to both keyboards.',
+  'How to actually disconnect on weekends.',
+  'Cooking Thai food. The fish sauce is non-negotiable.',
+  'Obsidian and personal knowledge management systems.',
+];
+
+const TRUTHS_POOL = [
+  'I once ate the same lunch every day for six months.',
+  'I\'ve read Lord of the Rings three times.',
+  'I can touch type at 110 wpm.',
+  'I have never watched a single episode of Breaking Bad.',
+  'I wrote a chatbot just to avoid talking to customer service.',
+  'I sleep with two alarms exactly 3 minutes apart.',
+  'I can name all 151 original Pokémon from memory.',
+  'I once fixed a production bug from my phone at a concert.',
+  'I have a collection of mechanical keyboards I don\'t use.',
+  'I genuinely enjoy reading documentation.',
+];
+
+const LIES_POOL = [
+  'I have run a half marathon.',
+  'I once met the CEO of Twitter at a conference.',
+  'I can solve a Rubik\'s cube in under a minute.',
+  'I learned to code before I learned to drive.',
+  'I once shipped a feature to 10 million users in a single push.',
+  'I have never broken production on a Friday.',
+  'I have a side project that actually makes money.',
+];
+
 function pick(arr) { return arr[Math.floor(Math.random() * arr.length)]; }
 function pickN(arr, n) {
   const shuffled = [...arr].sort(() => Math.random() - 0.5);
@@ -179,6 +245,21 @@ export function randomFill() {
       skip: skip ? 'skip' : '',
     };
   }
+
+  state.intro.jobTitle = pick(JOB_TITLES);
+  state.intro.yearsExperience = pick(YEARS_EXP);
+  state.intro.prevCompany = pick(PREV_COMPANIES);
+  state.intro.city = pick(CITIES);
+  state.intro.careerHighlight = pick(CAREER_HIGHLIGHTS);
+  state.intro.motto = pick(MOTTOS);
+  state.intro.unknownFact = pick(UNKNOWN_FACTS);
+  state.intro.currentlyLearning = pick(LEARNING_NOW);
+  state.intro.freeTimeChoice = pick(['gaming', 'binge-watching', 'overthinking', 'side-projects', 'reading', 'gym', 'cat-content', 'napping']);
+  state.intro.freeTimeCustom = '';
+  const shuffledTruths = [...TRUTHS_POOL].sort(() => Math.random() - 0.5);
+  state.intro.truth1 = shuffledTruths[0];
+  state.intro.truth2 = shuffledTruths[1];
+  state.intro.lie = pick(LIES_POOL);
 
   state.extras.memeLink = '';
   state.extras.memeNote = '';

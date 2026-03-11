@@ -83,16 +83,40 @@ function preloadImages(urls) {
 
 function measureCard(ctx, s, media) {
   let y = 265;
+  y = measureYourStory(ctx, s, y);
   y = measureHobbies(ctx, s, y);
   y = measureTwoColRow(ctx, s, y);
   y = measureMovies(ctx, s, y);
   y = measureWildcards(ctx, s, y);
-  if (s.cardConfig.showSocials && s.identity.handles.length) y += 60 + Math.ceil(s.identity.handles.filter(h => h.handle).length / 3) * 28;
+  if (s.cardConfig.showSocials && s.identity.handles.length) y += 64 + Math.ceil(s.identity.handles.filter(h => h.handle).length / 3) * 26;
   if (media.length) {
     const maxPerRow = Math.floor(FULL_W / 80);
-    y += 50 + Math.ceil(media.length / maxPerRow) * 119;
+    y += 54 + Math.ceil(media.length / maxPerRow) * 119;
   }
   return Math.max(900, y + 80);
+}
+
+function measureYourStory(ctx, s, y) {
+  const hasStory = s.intro.jobTitle || s.intro.careerHighlight || s.intro.motto || s.intro.unknownFact;
+  if (!hasStory) return y;
+  y += 44; // sep + title
+  if (s.intro.jobTitle) {
+    y += 20;
+    if (s.intro.prevCompany) y += 18;
+  }
+  if (s.intro.careerHighlight) {
+    ctx.font = '13px "Avenir Next", sans-serif';
+    y += 16 + wrapText(ctx, s.intro.careerHighlight, FULL_W).length * 17 + 12;
+  }
+  if (s.intro.motto) {
+    ctx.font = 'italic 13px "Avenir Next", sans-serif';
+    y += wrapText(ctx, `"${s.intro.motto}"`, FULL_W).length * 17 + 14;
+  }
+  if (s.intro.unknownFact) {
+    ctx.font = '13px "Avenir Next", sans-serif';
+    y += 16 + wrapText(ctx, s.intro.unknownFact, FULL_W).length * 17 + 12;
+  }
+  return y + 10;
 }
 
 function measureHobbies(ctx, s, y) {
@@ -157,13 +181,22 @@ function measureMovies(ctx, s, y) {
 
 function measureWildcards(ctx, s, y) {
   const wc = Object.entries(s.wildcards).filter(([, v]) => v.value && !v.skip);
-  if (!wc.length) return y;
-  y += 40;
+  const tl = [s.intro.truth1, s.intro.truth2, s.intro.lie].filter(Boolean);
+  if (!wc.length && !tl.length) return y;
+  y += 44; // sep(0) + 20 + title(24)
   wc.forEach(([, v]) => {
     ctx.font = 'italic 13px "Avenir Next", sans-serif';
     const lines = wrapText(ctx, `"${v.value}"`, FULL_W);
-    y += 22 + lines.length * 17 + 14;
+    y += 16 + lines.length * 17 + 16;
   });
+  if (tl.length) {
+    y += 26; // sub-label
+    tl.forEach(t => {
+      ctx.font = '13px "Avenir Next", sans-serif';
+      const lines = wrapText(ctx, t, FULL_W);
+      y += 16 + lines.length * 17 + 12;
+    });
+  }
   return y + 10;
 }
 
@@ -278,12 +311,72 @@ function drawStats(ctx, s) {
 function drawBody(ctx, s) {
   let y = 265;
 
+  y = drawYourStorySection(ctx, s, y);
   y = drawHobbiesSection(ctx, s, y);
   y = drawGamingAnimeRow(ctx, s, y);
   y = drawMoviesSection(ctx, s, y);
   y = drawWildcardsSection(ctx, s, y);
 
   return y;
+}
+
+function drawYourStorySection(ctx, s, y) {
+  const hasStory = s.intro.jobTitle || s.intro.careerHighlight || s.intro.motto || s.intro.unknownFact;
+  if (!hasStory) return y;
+
+  drawHorizontalSep(ctx, y);
+  y += 20;
+  y = drawSectionTitle(ctx, 'YOUR STORY', COLORS.accent, LX, y, FULL_W);
+
+  if (s.intro.jobTitle) {
+    let line = s.intro.jobTitle;
+    if (s.intro.yearsExperience) line += ` · ${s.intro.yearsExperience}`;
+    if (s.intro.city) line += ` — ${s.intro.city}`;
+    ctx.fillStyle = COLORS.textPrimary;
+    ctx.font = 'bold 14px "Avenir Next", sans-serif';
+    ctx.fillText(line, LX, y);
+    y += 20;
+    if (s.intro.prevCompany) {
+      ctx.fillStyle = COLORS.textMuted;
+      ctx.font = '12px "Avenir Next", sans-serif';
+      ctx.fillText(`Previously at ${s.intro.prevCompany}`, LX, y);
+      y += 18;
+    }
+  }
+
+  if (s.intro.careerHighlight) {
+    ctx.fillStyle = COLORS.accent;
+    ctx.font = 'bold 11px "Avenir Next", sans-serif';
+    ctx.fillText('CAREER HIGHLIGHT', LX, y);
+    y += 16;
+    ctx.fillStyle = COLORS.textSecondary;
+    ctx.font = '13px "Avenir Next", sans-serif';
+    const lines = wrapText(ctx, s.intro.careerHighlight, FULL_W);
+    lines.forEach((line, i) => ctx.fillText(line, LX, y + i * 17));
+    y += lines.length * 17 + 12;
+  }
+
+  if (s.intro.motto) {
+    ctx.fillStyle = COLORS.textMuted;
+    ctx.font = 'italic 14px "Avenir Next", sans-serif';
+    const lines = wrapText(ctx, `"${s.intro.motto}"`, FULL_W);
+    lines.forEach((line, i) => ctx.fillText(line, LX, y + i * 17));
+    y += lines.length * 17 + 14;
+  }
+
+  if (s.intro.unknownFact) {
+    ctx.fillStyle = COLORS.accent;
+    ctx.font = 'bold 11px "Avenir Next", sans-serif';
+    ctx.fillText('FUN FACT', LX, y);
+    y += 16;
+    ctx.fillStyle = COLORS.textSecondary;
+    ctx.font = '13px "Avenir Next", sans-serif';
+    const lines = wrapText(ctx, s.intro.unknownFact, FULL_W);
+    lines.forEach((line, i) => ctx.fillText(line, LX, y + i * 17));
+    y += lines.length * 17 + 12;
+  }
+
+  return y + 6;
 }
 
 function drawSectionTitle(ctx, title, color, x, y, w) {
@@ -341,7 +434,7 @@ function drawGamingAnimeRow(ctx, s, y) {
     s.gaming.topGames.forEach((g, i) => {
       ctx.fillStyle = COLORS.textSecondary;
       ctx.font = '14px "Avenir Next", sans-serif';
-      leftY = drawWrappedItem(ctx, `${i + 1}. ${g.name}`, LX + 6, leftY, CW - 6);
+      leftY = drawWrappedItem(ctx, `\u2022 ${g.name}`, LX + 6, leftY, CW - 6);
     });
     if (s.gaming.topGames.length) leftY += 8;
     if (s.gaming.replayGame) leftY = drawSmallLabelValue(ctx, 'Would Replay', s.gaming.replayGame.name, COLORS.gaming, LX, leftY, CW);
@@ -354,7 +447,7 @@ function drawGamingAnimeRow(ctx, s, y) {
     s.anime.topAnime.forEach((a, i) => {
       ctx.fillStyle = COLORS.textSecondary;
       ctx.font = '14px "Avenir Next", sans-serif';
-      rightY = drawWrappedItem(ctx, `${i + 1}. ${a.name}`, RX + 6, rightY, CW - 6);
+      rightY = drawWrappedItem(ctx, `\u2022 ${a.name}`, RX + 6, rightY, CW - 6);
     });
     if (s.anime.topAnime.length) rightY += 8;
     if (s.anime.favoriteCharacterData) rightY = drawSmallLabelValue(ctx, 'Anime Character', s.anime.favoriteCharacterData.name, COLORS.anime, RX, rightY, CW);
@@ -380,7 +473,7 @@ function drawMoviesSection(ctx, s, y) {
   s.movies.topMovies.forEach((m, i) => {
     ctx.fillStyle = COLORS.textSecondary;
     ctx.font = '14px "Avenir Next", sans-serif';
-    y = drawWrappedItem(ctx, `${i + 1}. ${m.name}`, LX + 6, y, FULL_W - 6);
+    y = drawWrappedItem(ctx, `\u2022 ${m.name}`, LX + 6, y, FULL_W - 6);
   });
   if (s.movies.topMovies.length) y += 8;
 
@@ -424,11 +517,12 @@ function drawMoviesSection(ctx, s, y) {
 
 function drawWildcardsSection(ctx, s, y) {
   const wildcards = Object.entries(s.wildcards).filter(([, v]) => v.value && !v.skip);
-  if (!wildcards.length) return y;
+  const tl = [s.intro.truth1, s.intro.truth2, s.intro.lie].filter(Boolean);
+  if (!wildcards.length && !tl.length) return y;
 
   drawHorizontalSep(ctx, y);
   y += 20;
-  y = drawSectionTitle(ctx, 'WILDCARDS', COLORS.wildcards, LX, y, FULL_W);
+  y = drawSectionTitle(ctx, 'HOT TAKES & GAMES', COLORS.wildcards, LX, y, FULL_W);
 
   wildcards.forEach(([key, v]) => {
     ctx.fillStyle = COLORS.wildcards;
@@ -442,7 +536,21 @@ function drawWildcardsSection(ctx, s, y) {
     y += lines.length * 17 + 16;
   });
 
-  return y;
+  if (tl.length) {
+    ctx.fillStyle = COLORS.wildcards;
+    ctx.font = 'bold 11px "Avenir Next", sans-serif';
+    ctx.fillText('TWO TRUTHS, ONE LIE', LX, y);
+    y += 20;
+    tl.forEach(t => {
+      ctx.fillStyle = COLORS.textSecondary;
+      ctx.font = '13px "Avenir Next", sans-serif';
+      const lines = wrapText(ctx, `\u2022 ${t}`, FULL_W);
+      lines.forEach((line, i) => ctx.fillText(line, LX, y + i * 17));
+      y += lines.length * 17 + 12;
+    });
+  }
+
+  return y + 6;
 }
 
 function drawSmallLabelValue(ctx, label, value, color, x, y, maxW) {
@@ -511,9 +619,10 @@ function drawCollection(ctx, media, y, imageCache) {
   y += 20;
   y = drawSectionTitle(ctx, 'FAVORITE MEDIA', COLORS.textMuted, LX, y, FULL_W);
 
-  const imgW = 70;
-  const imgH = 95;
-  const gap = 10;
+  const imgW = 90;
+  const imgH = 122;
+  const gap = 12;
+  const labelH = 28;
   const maxPerRow = Math.floor(FULL_W / (imgW + gap));
   const typeColors = { game: COLORS.gaming, anime: COLORS.anime, movie: COLORS.movies };
 
@@ -521,40 +630,52 @@ function drawCollection(ctx, media, y, imageCache) {
     const col = i % maxPerRow;
     const row = Math.floor(i / maxPerRow);
     const x = LX + col * (imgW + gap);
-    const iy = y + row * (imgH + 24);
+    const iy = y + row * (imgH + labelH);
 
     const img = imageCache.get(m.image);
     if (img) {
       ctx.save();
-      roundRect(ctx, x, iy, imgW, imgH, 6);
+      roundRect(ctx, x, iy, imgW, imgH, 8);
       ctx.clip();
       ctx.drawImage(img, x, iy, imgW, imgH);
       ctx.restore();
     } else {
-      ctx.fillStyle = hexToRgba(typeColors[m.type] || COLORS.textMuted, 0.08);
-      roundRect(ctx, x, iy, imgW, imgH, 6);
+      // Intentional placeholder: gradient + type color + name
+      const tc = typeColors[m.type] || COLORS.textMuted;
+      const grad = ctx.createLinearGradient(x, iy, x, iy + imgH);
+      grad.addColorStop(0, hexToRgba(tc, 0.18));
+      grad.addColorStop(1, hexToRgba(tc, 0.06));
+      ctx.fillStyle = grad;
+      roundRect(ctx, x, iy, imgW, imgH, 8);
       ctx.fill();
-      ctx.fillStyle = COLORS.textMuted;
-      ctx.font = '24px sans-serif';
+      // Type icon
+      ctx.font = '28px sans-serif';
       ctx.textAlign = 'center';
-      ctx.fillText(m.type === 'game' ? '\uD83C\uDFAE' : m.type === 'anime' ? '\uD83C\uDFAC' : '\uD83C\uDF9E', x + imgW / 2, iy + imgH / 2 + 8);
+      ctx.fillText(m.type === 'game' ? '\uD83C\uDFAE' : m.type === 'anime' ? '\uD83C\uDFAC' : '\uD83C\uDF9E', x + imgW / 2, iy + 46);
+      // Name inside placeholder
+      ctx.fillStyle = hexToRgba(tc, 0.9);
+      ctx.font = 'bold 9px "Avenir Next", sans-serif';
+      const nameLines = wrapText(ctx, m.name, imgW - 10);
+      nameLines.slice(0, 3).forEach((line, li) => ctx.fillText(line, x + imgW / 2, iy + 66 + li * 13));
       ctx.textAlign = 'left';
     }
 
-    ctx.strokeStyle = hexToRgba(typeColors[m.type] || COLORS.textMuted, 0.3);
+    // Colored border
+    ctx.strokeStyle = hexToRgba(typeColors[m.type] || COLORS.textMuted, 0.35);
     ctx.lineWidth = 1;
-    roundRect(ctx, x, iy, imgW, imgH, 6);
+    roundRect(ctx, x, iy, imgW, imgH, 8);
     ctx.stroke();
 
-    ctx.fillStyle = COLORS.textMuted;
-    ctx.font = '9px "Avenir Next", sans-serif';
+    // Title below
+    ctx.fillStyle = COLORS.textSecondary;
+    ctx.font = '10px "Avenir Next", sans-serif';
     ctx.textAlign = 'center';
-    ctx.fillText(truncate(m.name, 12), x + imgW / 2, iy + imgH + 12);
+    ctx.fillText(truncate(m.name, 14), x + imgW / 2, iy + imgH + 14);
     ctx.textAlign = 'left';
   });
 
   const rows = Math.ceil(media.length / maxPerRow);
-  return y + rows * (imgH + 24) + 16;
+  return y + rows * (imgH + labelH) + 16;
 }
 
 function drawFooter(ctx, y) {
