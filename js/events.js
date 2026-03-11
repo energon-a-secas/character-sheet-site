@@ -1,4 +1,4 @@
-import { state, save, resetState } from './state.js';
+import { state, save, resetState, convex, api, deepMerge } from './state.js';
 import { SECTIONS } from './data.js';
 import { render, renderSection, renderProgressBar, renderNav, renderMediaShelf, renderSectionDots } from './render.js';
 import { renderBuilder, getAllHighlightableMedia } from './builder.js';
@@ -13,6 +13,16 @@ export function bindEvents() {
   document.addEventListener('input', onInput);
   document.addEventListener('click', onClick);
   document.addEventListener('keydown', onKeydown);
+
+  // Restore session from localStorage
+  const savedUser = localStorage.getItem('cs-user');
+  if (savedUser) {
+    try {
+      state._user = JSON.parse(savedUser);
+      updateAuthUI();
+      loadUserSheets();
+    } catch { localStorage.removeItem('cs-user'); }
+  }
 }
 
 function onInput(e) {
@@ -46,6 +56,16 @@ function onInput(e) {
 
 function onClick(e) {
   const el = e.target;
+
+  // Auth tab switching
+  if (el.matches('.auth-tab')) {
+    document.querySelectorAll('.auth-tab').forEach(t => t.classList.remove('active'));
+    el.classList.add('active');
+    const tab = el.dataset.tab;
+    document.getElementById('authLoginForm').hidden = tab !== 'login';
+    document.getElementById('authRegisterForm').hidden = tab !== 'register';
+    return;
+  }
 
   if (el.dataset.console || el.closest('[data-console]')) {
     const opt = el.closest('[data-console]');
@@ -203,11 +223,12 @@ function onKeydown(e) {
       window.closeCardModal();
     }
   }
-  if (e.key === 'ArrowRight' && e.altKey && !isInputFocused()) {
+  // Plain arrow keys navigate sections (also still works with Alt for backwards compat)
+  if ((e.key === 'ArrowRight') && !isInputFocused()) {
     e.preventDefault();
     window.nextSection();
   }
-  if (e.key === 'ArrowLeft' && e.altKey && !isInputFocused()) {
+  if ((e.key === 'ArrowLeft') && !isInputFocused()) {
     e.preventDefault();
     window.prevSection();
   }
@@ -302,6 +323,194 @@ function getNestedValue(obj, path) {
   }
   return target;
 }
+
+// ── Auth helpers ────────────────────────────────────────────────────────────
+
+function updateAuthUI() {
+  const toggle = document.getElementById('authToggle');
+  const userInfo = document.getElementById('authUserInfo');
+  const loginForm = document.getElementById('authLoginForm');
+  const regForm = document.getElementById('authRegisterForm');
+  if (!toggle) return;
+
+  if (state._user) {
+    toggle.textContent = state._user.username;
+    toggle.classList.add('logged-in');
+    userInfo.hidden = false;
+    loginForm.hidden = true;
+    regForm.hidden = true;
+    document.getElementById('authDisplayUser').textContent = state._user.username;
+    document.getElementById('sheetsBar').hidden = false;
+  } else {
+    toggle.textContent = 'Log In';
+    toggle.classList.remove('logged-in');
+    userInfo.hidden = true;
+    loginForm.hidden = false;
+    regForm.hidden = true;
+    document.getElementById('sheetsBar').hidden = true;
+  }
+}
+
+async function loadUserSheets() {
+  if (!state._user) return;
+  try {
+    const sheets = await convex.query(api.sheets.list, { userId: state._user.id });
+    const select = document.getElementById('sheetSelect');
+    if (!select) return;
+    select.innerHTML = '<option value="">— select a sheet —</option>';
+    sheets.forEach(s => {
+      const opt = document.createElement('option');
+      opt.value = s._id;
+      opt.textContent = s.name;
+      if (s._id === state._sheetId) opt.selected = true;
+      select.appendChild(opt);
+    });
+  } catch { /* Convex not configured yet */ }
+}
+
+function getSheetData(s) {
+  // Return only the form data (not auth/session fields)
+  const { _user, _sheetId, _sheetName, ...rest } = s;
+  return rest;
+}
+
+function deepMergeIntoState(data) {
+  // Merge loaded sheet data into state without overwriting auth/session fields
+  const { _user, _sheetId, _sheetName, ...safeData } = data;
+  deepMerge(state, safeData);
+}
+
+// ── Auth window functions ────────────────────────────────────────────────────
+
+window.toggleAuth = function() {
+  const panel = document.getElementById('authPanel');
+  panel.classList.toggle('open');
+};
+
+window.handleLogin = async function() {
+  const username = document.getElementById('authLoginUser').value.trim();
+  const password = document.getElementById('authLoginPass').value;
+  const errEl = document.getElementById('authLoginError');
+  errEl.hidden = true;
+  try {
+    const result = await convex.mutation(api.auth.login, { username, password });
+    if (result.ok) {
+      state._user = { id: result.userId, username: result.username };
+      localStorage.setItem('cs-user', JSON.stringify(state._user));
+      updateAuthUI();
+      document.getElementById('authPanel').classList.remove('open');
+      await loadUserSheets();
+      showToast(`Welcome back, ${result.username}!`);
+    } else {
+      errEl.textContent = result.error || 'Login failed';
+      errEl.hidden = false;
+    }
+  } catch (e) {
+    errEl.textContent = 'Connection error';
+    errEl.hidden = false;
+  }
+};
+
+window.handleRegister = async function() {
+  const username = document.getElementById('authRegUser').value.trim();
+  const password = document.getElementById('authRegPass').value;
+  const errEl = document.getElementById('authRegError');
+  errEl.hidden = true;
+  try {
+    const result = await convex.mutation(api.auth.register, { username, password });
+    if (result.ok) {
+      state._user = { id: result.userId, username: result.username };
+      localStorage.setItem('cs-user', JSON.stringify(state._user));
+      updateAuthUI();
+      document.getElementById('authPanel').classList.remove('open');
+      await loadUserSheets();
+      showToast(`Welcome, ${result.username}!`);
+    } else {
+      errEl.textContent = result.error || 'Registration failed';
+      errEl.hidden = false;
+    }
+  } catch (e) {
+    errEl.textContent = 'Connection error';
+    errEl.hidden = false;
+  }
+};
+
+window.handleLogout = function() {
+  state._user = null;
+  state._sheetId = null;
+  state._sheetName = null;
+  localStorage.removeItem('cs-user');
+  updateAuthUI();
+  document.getElementById('sheetsBar').hidden = true;
+  showToast('Logged out');
+};
+
+// ── Sheet window functions ───────────────────────────────────────────────────
+
+window.loadSheet = async function(sheetId) {
+  if (!sheetId || !state._user) return;
+  try {
+    const sheets = await convex.query(api.sheets.list, { userId: state._user.id });
+    const sheet = sheets.find(s => s._id === sheetId);
+    if (!sheet) return;
+    const data = JSON.parse(sheet.data);
+    state._sheetId = sheetId;
+    state._sheetName = sheet.name;
+    deepMergeIntoState(data);
+    state.currentSection = 0;
+    state.showBuilder = false;
+    save(state);
+    render();
+    showToast(`Loaded: ${sheet.name}`);
+  } catch { showToast('Failed to load sheet'); }
+};
+
+window.createNewSheet = async function() {
+  if (!state._user) { showToast('Log in to save'); return; }
+  const name = prompt('Sheet name:', 'My Character Sheet');
+  if (!name) return;
+  try {
+    const data = JSON.stringify(getSheetData(state));
+    const sheetId = await convex.mutation(api.sheets.save, {
+      userId: state._user.id,
+      name,
+      data,
+    });
+    state._sheetId = sheetId;
+    state._sheetName = name;
+    await loadUserSheets();
+    showToast(`Created: ${name}`);
+  } catch { showToast('Failed to create sheet'); }
+};
+
+window.saveCurrentSheet = async function() {
+  if (!state._user) { showToast('Log in to save'); return; }
+  if (!state._sheetId) { await window.createNewSheet(); return; }
+  try {
+    const data = JSON.stringify(getSheetData(state));
+    await convex.mutation(api.sheets.save, {
+      sheetId: state._sheetId,
+      userId: state._user.id,
+      name: state._sheetName,
+      data,
+    });
+    showToast('Saved!');
+  } catch { showToast('Failed to save sheet'); }
+};
+
+window.deleteCurrentSheet = async function() {
+  if (!state._user || !state._sheetId) return;
+  if (!confirm(`Delete "${state._sheetName}"?`)) return;
+  try {
+    await convex.mutation(api.sheets.remove, { sheetId: state._sheetId, userId: state._user.id });
+    state._sheetId = null;
+    state._sheetName = null;
+    await loadUserSheets();
+    showToast('Sheet deleted');
+  } catch { showToast('Failed to delete sheet'); }
+};
+
+// ── Navigation / card functions ─────────────────────────────────────────────
 
 window.startOver = function() {
   const hasData = state.identity.name || state.gaming.topGames.length || state.anime.topAnime.length || state.movies.topMovies.length || state.hobbies.selected.length;

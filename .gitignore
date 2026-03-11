@@ -5,3 +5,5 @@ node_modules/
 
 # Claude AI guidance (maintained centrally in .claude/project-claudes/)
 CLAUDE.md
+
+.env.local

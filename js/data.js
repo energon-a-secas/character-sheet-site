@@ -171,11 +171,18 @@ export function getSectionFill(s, key) {
       return f / t;
     }
     case 'intro': {
-      let f = 0, t = 3;
+      let f = 0, t = 6;
+      // Career group
       if (s.intro.jobTitle) f++;
+      if (s.intro.careerHighlight) f++;
+      // Personal group
+      if (s.intro.motto || s.intro.unknownFact || s.intro.currentlyLearning) f++;
+      // Fun Facts group
       if (s.intro.freeTimeChoice) f++;
       if (s.intro.truth1 && s.intro.truth2 && s.intro.lie) f++;
-      return f / t;
+      // City/experience bonus
+      if (s.intro.city || s.intro.yearsExperience) f++;
+      return Math.min(f / t, 1);
     }
     default: return 0;
   }

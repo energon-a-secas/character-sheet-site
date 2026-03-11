@@ -3,14 +3,11 @@
 <head>
   <meta charset="UTF-8">
   <meta http-equiv="X-Frame-Options" content="DENY">
-  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' cdnjs.cloudflare.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: blob: media.rawg.io image.tmdb.org cdn.myanimelist.net; connect-src 'self' charactersheet-api.neorgon.workers.dev; frame-ancestors 'none'">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' cdnjs.cloudflare.com https://esm.sh; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: blob: media.rawg.io image.tmdb.org cdn.myanimelist.net; connect-src 'self' charactersheet-api.neorgon.workers.dev https://*.convex.cloud https://esm.sh; frame-ancestors 'none'">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Character Sheet | Know Your Party</title>
   <meta name="description" content="Share who you are and how you like to be presented to. Build your RPG-style card for remote teams — timezone, vibes, and how to run meetings that stick.">
   <meta name="theme-color" content="#040714">
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500;0,9..40,600;1,9..40,400&display=swap" rel="stylesheet">
   <link rel="icon" type="image/x-icon" href="favicon.ico" />
   <link rel="stylesheet" href="css/style.css">
 </head>
@@ -28,6 +25,7 @@
         <div class="header-subtitle">About you — and how to present to you.</div>
       </div>
     </div>
+    <button class="header-auth-toggle" id="authToggle" onclick="toggleAuth()">Log In</button>
     <a class="header-home" href="https://neorgon.com/" title="neorgon.com" aria-label="Neorgon home">
       <svg viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
         <path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/>
@@ -35,8 +33,50 @@
     </a>
   </header>
 
+  <div class="auth-panel" id="authPanel">
+    <div class="auth-panel-inner">
+      <div class="auth-tabs">
+        <button class="auth-tab active" data-tab="login">Log In</button>
+        <button class="auth-tab" data-tab="register">Register</button>
+      </div>
+      <div class="auth-form" id="authLoginForm">
+        <input type="text" id="authLoginUser" placeholder="Username" maxlength="20" autocomplete="username">
+        <input type="password" id="authLoginPass" placeholder="Password" autocomplete="current-password">
+        <button class="auth-submit" id="authLoginBtn" onclick="handleLogin()">Log In</button>
+        <div class="auth-error" id="authLoginError" hidden></div>
+      </div>
+      <div class="auth-form" id="authRegisterForm" hidden>
+        <input type="text" id="authRegUser" placeholder="Choose a username" maxlength="20" autocomplete="username">
+        <input type="password" id="authRegPass" placeholder="Choose a password" autocomplete="new-password">
+        <button class="auth-submit" id="authRegBtn" onclick="handleRegister()">Create Account</button>
+        <div class="auth-error" id="authRegError" hidden></div>
+      </div>
+      <div class="auth-user-info" id="authUserInfo" hidden>
+        <span class="auth-username" id="authDisplayUser"></span>
+        <button class="auth-logout" onclick="handleLogout()">Log Out</button>
+      </div>
+    </div>
+  </div>
+  <div class="auth-divider"></div>
+
   <main id="main">
+    <div class="section-wrapper">
+      <button class="section-arrow arrow-left" id="arrowLeft" onclick="prevSection()" aria-label="Previous section">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+          <polyline points="15 18 9 12 15 6"/>
+        </svg>
+      </button>
     <div class="container">
+
+      <!-- Sheets bar (visible when logged in) -->
+      <div class="sheets-bar" id="sheetsBar" hidden>
+        <select class="sheet-select" id="sheetSelect" onchange="loadSheet(this.value)">
+          <option value="">— select a sheet —</option>
+        </select>
+        <button class="btn btn-sm" onclick="createNewSheet()">+ New</button>
+        <button class="btn btn-sm btn-primary" onclick="saveCurrentSheet()">Save</button>
+        <button class="btn btn-sm btn-danger" onclick="deleteCurrentSheet()">Delete</button>
+      </div>
 
       <!-- Progress bar -->
       <div class="xp-bar-wrapper">
@@ -63,6 +103,12 @@
         <button class="btn btn-primary" id="btn-next" onclick="nextSection()">Next</button>
       </div>
 
+    </div>
+      <button class="section-arrow arrow-right" id="arrowRight" onclick="nextSection()" aria-label="Next section">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+          <polyline points="9 18 15 12 9 6"/>
+        </svg>
+      </button>
     </div>
 
     <!-- Media shelf -->

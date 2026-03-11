@@ -3,6 +3,7 @@ import { SECTIONS, CONSOLES, PLATFORMS, HOBBY_OPTIONS, WILDCARDS, FREE_TIME_OPTI
 import { escHtml, $ } from './utils.js';
 
 let lastRenderedSection = -1;
+let lastNavigationDirection = 1; // 1 = forward, -1 = backward
 
 export function render() {
   if (state.showBuilder) {
@@ -15,15 +16,34 @@ export function render() {
       $('btn-prev').style.visibility = 'visible';
       renderBuilder();
       renderMediaShelf();
+      updateArrows(state);
     });
     return;
+  }
+
+  // Determine navigation direction for slide animation
+  if (lastRenderedSection !== -1 && state.currentSection !== lastRenderedSection) {
+    lastNavigationDirection = state.currentSection > lastRenderedSection ? 1 : -1;
   }
 
   renderProgressBar();
   renderSection(state.currentSection !== lastRenderedSection);
   renderNav();
   renderMediaShelf();
+  updateArrows(state);
   lastRenderedSection = state.currentSection;
+}
+
+function updateArrows(s) {
+  const left = document.getElementById('arrowLeft');
+  const right = document.getElementById('arrowRight');
+  if (!left || !right) return;
+  const hideLeft = s.currentSection === 0 && !s.showBuilder;
+  const hideRight = s.showBuilder;
+  left.style.opacity = hideLeft ? '0' : '1';
+  left.style.pointerEvents = hideLeft ? 'none' : 'auto';
+  right.style.opacity = hideRight ? '0' : '1';
+  right.style.pointerEvents = hideRight ? 'none' : 'auto';
 }
 
 export function renderProgressBar() {
@@ -59,7 +79,10 @@ export function renderNav() {
 export function renderSection(animate) {
   const sec = SECTIONS[state.currentSection];
   const container = $('section-container');
-  const animClass = animate ? ' section-entering' : '';
+  let animClass = '';
+  if (animate) {
+    animClass = lastNavigationDirection >= 0 ? ' section-enter-right' : ' section-enter-left';
+  }
   renderSectionDots();
   let html = `<div class="section-card${animClass}">
     <div class="section-title">${escHtml(sec.title)}</div>
@@ -89,7 +112,7 @@ function renderIdentity() {
     </div>
     <div class="field-group">
       <label class="field-label">Where in the world are you?</label>
-      <div class="field-hint">Optional — so nobody schedules 8am your time by accident.</div>
+      <div class="field-hint">So nobody schedules 8am your time by accident.</div>
       <input class="field-input" type="text" value="${escHtml(d.country)}" data-field="identity.country" placeholder="e.g. Chile, Germany, Remote" maxlength="60">
     </div>
     <div class="field-group">
@@ -319,53 +342,82 @@ function renderExtras() {
 
 function renderIntro() {
   const d = state.intro;
-  const name = state.identity.name;
 
   let html = `
-    <div class="field-group">
-      <label class="field-label">What do you do for work?</label>
-      <input class="field-input" type="text" value="${escHtml(d.jobTitle)}" data-field="intro.jobTitle" placeholder="Software Engineer, Designer, PM..." maxlength="80">
-    </div>
-    <div class="intro-row">
+    <div class="story-group">
+      <div class="story-group-label">&#x1F9D1;&#x200D;&#x1F4BC; Career</div>
       <div class="field-group">
-        <label class="field-label">Years of experience?</label>
-        <input class="field-input" type="text" value="${escHtml(d.yearsExperience)}" data-field="intro.yearsExperience" placeholder="5+ years, since forever..." maxlength="30">
+        <label class="field-label">What do you do for work?</label>
+        <input class="field-input" type="text" value="${escHtml(d.jobTitle)}" data-field="intro.jobTitle" placeholder="Software Engineer, Designer, PM..." maxlength="80">
+      </div>
+      <div class="intro-row">
+        <div class="field-group">
+          <label class="field-label">Years of experience?</label>
+          <input class="field-input" type="text" value="${escHtml(d.yearsExperience)}" data-field="intro.yearsExperience" placeholder="5+ years, since forever..." maxlength="30">
+        </div>
+        <div class="field-group">
+          <label class="field-label">Previously at?</label>
+          <input class="field-input" type="text" value="${escHtml(d.prevCompany)}" data-field="intro.prevCompany" placeholder="Company you came from" maxlength="60">
+        </div>
       </div>
       <div class="field-group">
-        <label class="field-label">Previously at?</label>
-        <div class="field-hint">Optional</div>
-        <input class="field-input" type="text" value="${escHtml(d.prevCompany)}" data-field="intro.prevCompany" placeholder="Company you came from" maxlength="60">
+        <label class="field-label">Which city?</label>
+        <div class="field-hint">More specific than your country — helps with timezone context</div>
+        <input class="field-input" type="text" value="${escHtml(d.city)}" data-field="intro.city" placeholder="Santiago, Berlin, Remote..." maxlength="60">
+      </div>
+      <div class="field-group">
+        <label class="field-label">Your proudest career moment or achievement</label>
+        <div class="field-hint">The thing you'd mention if someone asked what you're most proud of</div>
+        <input class="field-input" type="text" value="${escHtml(d.careerHighlight)}" data-field="intro.careerHighlight" placeholder="Shipped X, led Y, built Z from scratch..." maxlength="120">
       </div>
     </div>
-    <div class="field-group">
-      <label class="field-label">Which city?</label>
-      <div class="field-hint">More specific than your country — helps with timezone context</div>
-      <input class="field-input" type="text" value="${escHtml(d.city)}" data-field="intro.city" placeholder="Santiago, Berlin, Remote..." maxlength="60">
-    </div>
-    <div class="field-group">
-      <label class="field-label">In my free time I...</label>
-      <div class="field-hint">Pick one (or pick the one that makes people ask questions)</div>
-      <div class="freetime-grid">
-        ${FREE_TIME_OPTIONS.map(o => `<button type="button" class="freetime-pill${d.freeTimeChoice === o.id ? ' active' : ''}" data-choice="intro.freeTimeChoice" data-val="${escHtml(o.id)}">${escHtml(o.label)}</button>`).join('')}
+
+    <div class="story-group">
+      <div class="story-group-label">&#x1F9E0; Personal</div>
+      <div class="field-group">
+        <label class="field-label">Your personal motto or life philosophy</label>
+        <div class="field-hint">The sentence you'd put on a mug</div>
+        <input class="field-input" type="text" value="${escHtml(d.motto)}" data-field="intro.motto" placeholder="Work hard, stay humble. Or just vibes." maxlength="120">
       </div>
-      ${d.freeTimeChoice === 'custom' ? `
-      <input class="field-input" type="text" value="${escHtml(d.freeTimeCustom)}" data-field="intro.freeTimeCustom" placeholder="Tell us what you actually do..." maxlength="80" style="margin-top:var(--space-3)">` : ''}
+      <div class="field-group">
+        <label class="field-label">One thing most people don't know about you</label>
+        <div class="field-hint">The detail that makes people go "wait, really?"</div>
+        <input class="field-input" type="text" value="${escHtml(d.unknownFact)}" data-field="intro.unknownFact" placeholder="I was a competitive chess player / I speak 4 languages..." maxlength="120">
+      </div>
+      <div class="field-group">
+        <label class="field-label">What you're learning or exploring right now</label>
+        <div class="field-hint">Could be professional or completely random</div>
+        <input class="field-input" type="text" value="${escHtml(d.currentlyLearning)}" data-field="intro.currentlyLearning" placeholder="Rust, ceramics, how to not overthink things..." maxlength="120">
+      </div>
     </div>
-    <div class="field-group">
-      <label class="field-label">Two Truths, One Lie</label>
-      <div class="field-hint">Write two things that are true about you and one sneaky lie — we'll shuffle them on the slide.</div>
-      <div class="truth-lie-section">
-        <div class="truth-card">
-          <div class="statement-badge">✓ Truth</div>
-          <textarea class="field-input" data-field="intro.truth1" placeholder="Something true about you..." maxlength="120">${escHtml(d.truth1)}</textarea>
+
+    <div class="story-group">
+      <div class="story-group-label">&#x26A1; Fun Facts</div>
+      <div class="field-group">
+        <label class="field-label">In my free time I...</label>
+        <div class="field-hint">Pick one (or pick the one that makes people ask questions)</div>
+        <div class="freetime-grid">
+          ${FREE_TIME_OPTIONS.map(o => `<button type="button" class="freetime-pill${d.freeTimeChoice === o.id ? ' active' : ''}" data-choice="intro.freeTimeChoice" data-val="${escHtml(o.id)}">${escHtml(o.label)}</button>`).join('')}
         </div>
-        <div class="truth-card">
-          <div class="statement-badge">✓ Truth</div>
-          <textarea class="field-input" data-field="intro.truth2" placeholder="Another true thing..." maxlength="120">${escHtml(d.truth2)}</textarea>
-        </div>
-        <div class="lie-card">
-          <div class="statement-badge">✗ Lie</div>
-          <textarea class="field-input" data-field="intro.lie" placeholder="And the sneaky lie..." maxlength="120">${escHtml(d.lie)}</textarea>
+        ${d.freeTimeChoice === 'custom' ? `
+        <input class="field-input" type="text" value="${escHtml(d.freeTimeCustom)}" data-field="intro.freeTimeCustom" placeholder="Tell us what you actually do..." maxlength="80" style="margin-top:var(--space-3)">` : ''}
+      </div>
+      <div class="field-group">
+        <label class="field-label">Two Truths, One Lie</label>
+        <div class="field-hint">Write two things that are true about you and one sneaky lie — we'll shuffle them on the slide.</div>
+        <div class="truth-lie-section">
+          <div class="truth-card">
+            <div class="statement-badge">&#x2713; Truth</div>
+            <textarea class="field-input" data-field="intro.truth1" placeholder="Something true about you..." maxlength="120">${escHtml(d.truth1)}</textarea>
+          </div>
+          <div class="truth-card">
+            <div class="statement-badge">&#x2713; Truth</div>
+            <textarea class="field-input" data-field="intro.truth2" placeholder="Another true thing..." maxlength="120">${escHtml(d.truth2)}</textarea>
+          </div>
+          <div class="lie-card">
+            <div class="statement-badge">&#x2717; Lie</div>
+            <textarea class="field-input" data-field="intro.lie" placeholder="And the sneaky lie..." maxlength="120">${escHtml(d.lie)}</textarea>
+          </div>
         </div>
       </div>
     </div>`;
