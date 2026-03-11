@@ -159,6 +159,10 @@ function esc(str) {
   return String(str ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
 }
 
+export function generatePresentationHTML(s) {
+  return buildHTML(s);
+}
+
 export function downloadPresentation(s) {
   const html = buildHTML(s);
   const blob = new Blob([html], { type: 'text/html; charset=utf-8' });

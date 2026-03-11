@@ -1,6 +1,7 @@
 import { state } from './state.js';
 import { SECTIONS, CONSOLES, PLATFORMS, HOBBY_OPTIONS, WILDCARDS, FREE_TIME_OPTIONS, ANIME_GENRES, MOVIE_GENRES, getSectionFill } from './data.js';
 import { escHtml, $ } from './utils.js';
+import { IconPerson, IconAnime, IconGame, IconMovie, IconPin } from './icons.js';
 
 let lastRenderedSection = -1;
 let lastNavigationDirection = 1; // 1 = forward, -1 = backward
@@ -146,7 +147,7 @@ function renderIdentity() {
         <input class="field-input search-input" type="text" value="${escHtml(d.city)}" placeholder="Search for your city..." maxlength="100" autocomplete="off">
         <div class="search-results"></div>
       </div>
-      ${d.timezone ? `<div class="timezone-display">📍 ${escHtml(d.city)}${d.country ? ', ' + escHtml(d.country) : ''} <span class="timezone-badge">${escHtml(d.timezone)}</span></div>` : ''}
+      ${d.timezone ? `<div class="timezone-display">${IconPin} ${escHtml(d.city)}${d.country ? ', ' + escHtml(d.country) : ''} <span class="timezone-badge">${escHtml(d.timezone)}</span></div>` : ''}
     </div>
     <div class="field-group">
       <label class="field-label">When are you most human?</label>
@@ -552,11 +553,11 @@ function renderSearchField(label, type, stateKey, selected, max, placeholder) {
   let tags = '';
   if (type !== 'game' && type !== 'anime' && type !== 'movie') {
     tags = (selected || []).map((item, i) => {
-      const typeEmoji = type === 'character' ? '👤' : '🎌';
+      const typeIcon = type === 'character' ? IconPerson : IconAnime;
       return `
       <span class="selected-tag">
-        ${item.image ? `<img src="${escHtml(item.image)}" alt="" onerror="this.style.display='none'; this.nextElementSibling.style.display='inline-block';">` : ''}
-        <span class="selected-tag-emoji" style="display:${item.image ? 'none' : 'inline-block'}">${typeEmoji}</span>
+        ${item.image ? `<img src="${escHtml(item.image)}" alt="" onerror="this.style.display='none'; this.nextElementSibling.style.display='inline-flex';">` : ''}
+        <span class="selected-tag-icon" style="display:${item.image ? 'none' : 'inline-flex'}; align-items:center">${typeIcon}</span>
         ${escHtml(item.name)}
         <span class="tag-remove" data-remove="${stateKey}" data-idx="${i}">&times;</span>
       </span>`;
@@ -595,15 +596,15 @@ export function renderMediaShelf() {
     <div class="shelf-label">Your picks</div>
     <div class="shelf-scroll">
       ${allMedia.map(m => {
-        const typeEmoji = m.type === 'game' ? '🎮' : m.type === 'anime' ? '🎌' : '🎬';
-        const imgHtml = m.image 
+        const typeIcon = m.type === 'game' ? IconGame : m.type === 'anime' ? IconAnime : IconMovie;
+        const imgHtml = m.image
           ? `<img src="${escHtml(m.image)}" alt="${escHtml(m.name)}" loading="lazy" onerror="this.onerror=null; this.style.display='none'; this.nextElementSibling.style.display='flex';">`
           : '';
         return `
         <div class="shelf-item shelf-item--${m.type}">
           ${imgHtml}
           <div class="shelf-item-fallback" style="display:${m.image ? 'none' : 'flex'}">
-            <span class="shelf-item-emoji">${typeEmoji}</span>
+            <span class="shelf-item-icon">${typeIcon}</span>
           </div>
           <div class="shelf-item-name">${escHtml(m.name)}</div>
         </div>`;

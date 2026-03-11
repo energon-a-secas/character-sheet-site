@@ -132,6 +132,8 @@ main, header { position: relative; z-index: 1; }
   align-items: flex-start;
   gap: 0;
   width: 100%;
+  max-width: calc(720px + 140px);
+  margin: 0 auto;
 }
 
 .container {
@@ -824,7 +826,7 @@ textarea.field-input {
   border: 1px solid var(--border);
   border-radius: var(--radius-lg);
   padding: var(--space-6);
-  max-width: 860px;
+  max-width: 1260px;
   width: 100%;
   max-height: 90vh;
   overflow-y: auto;
@@ -856,14 +858,71 @@ textarea.field-input {
 
 .card-modal-actions {
   display: flex;
-  gap: var(--space-3);
-  justify-content: center;
   flex-wrap: wrap;
+  gap: 8px;
+  justify-content: center;
 }
 
 .card-modal-actions .btn {
   flex: 0 1 auto;
   white-space: nowrap;
+}
+
+/* ── Button icon helper ─────────────────────────────────────── */
+.btn-icon {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+/* ── Two-panel card modal layout ───────────────────────────── */
+.card-modal-panels {
+  display: flex;
+  gap: 24px;
+  width: 100%;
+  align-items: flex-start;
+}
+
+.modal-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.modal-panel--intro {
+  flex: 0 0 380px;
+}
+
+.modal-panel--card {
+  flex: 1;
+  min-width: 0;
+}
+
+.panel-label {
+  font-size: 0.85em;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: rgba(255,255,255,0.5);
+}
+
+.intro-preview-iframe {
+  width: 100%;
+  aspect-ratio: 16/9;
+  border: none;
+  border-radius: 8px;
+  background: #000;
+  display: block;
+}
+
+@media (max-width: 900px) {
+  .card-modal-panels {
+    flex-direction: column;
+  }
+  .modal-panel--intro {
+    flex: none;
+    width: 100%;
+  }
 }
 
 /* ── Field hints ───────────────────────────────────────────── */
@@ -1502,6 +1561,9 @@ textarea.field-input {
 }
 
 /* ── Sheets bar ─────────────────────────────────────────────── */
+.sheets-bar[hidden] {
+  display: none;
+}
 .sheets-bar {
   display: flex;
   align-items: center;

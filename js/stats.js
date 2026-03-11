@@ -1,6 +1,7 @@
 // Stats and analytics for user profile
 import { state } from './state.js';
 import { SECTIONS } from './data.js';
+import { IconSparkle, IconStar, IconZap, IconGame, IconAnime, IconMovie, IconTrophy, IconGlobe, IconPalette, IconBook } from './icons.js';
 
 export function calculateCompletionStats() {
   const stats = {
@@ -101,33 +102,33 @@ function calculateAchievements(stats) {
 
   // Completion achievements
   if (stats.overall >= 100) {
-    achievements.push({ id: 'perfectionist', name: 'Perfectionist', icon: '✨', description: 'Completed 100% of your character sheet' });
+    achievements.push({ id: 'perfectionist', name: 'Perfectionist', icon: IconSparkle, description: 'Completed 100% of your character sheet' });
   } else if (stats.overall >= 75) {
-    achievements.push({ id: 'dedicated', name: 'Dedicated', icon: '⭐', description: 'Completed 75% of your character sheet' });
+    achievements.push({ id: 'dedicated', name: 'Dedicated', icon: IconStar, description: 'Completed 75% of your character sheet' });
   } else if (stats.overall >= 50) {
-    achievements.push({ id: 'committed', name: 'Committed', icon: '🌟', description: 'Completed 50% of your character sheet' });
+    achievements.push({ id: 'committed', name: 'Committed', icon: IconZap, description: 'Completed 50% of your character sheet' });
   }
 
   // Section-specific achievements
   if (stats.sections.gaming.percentage >= 100) {
-    achievements.push({ id: 'gamer', name: 'True Gamer', icon: '🎮', description: 'Completed the Gaming section' });
+    achievements.push({ id: 'gamer', name: 'True Gamer', icon: IconGame, description: 'Completed the Gaming section' });
   }
   if (stats.sections.anime.percentage >= 100) {
-    achievements.push({ id: 'otaku', name: 'Otaku', icon: '🎌', description: 'Completed the Anime section' });
+    achievements.push({ id: 'otaku', name: 'Otaku', icon: IconAnime, description: 'Completed the Anime section' });
   }
   if (stats.sections.movies.percentage >= 100) {
-    achievements.push({ id: 'cinephile', name: 'Cinephile', icon: '🎬', description: 'Completed the Movies section' });
+    achievements.push({ id: 'cinephile', name: 'Cinephile', icon: IconMovie, description: 'Completed the Movies section' });
   }
 
   // Content achievements
   if (state.gaming.topGames.length >= 3) {
-    achievements.push({ id: 'collector', name: 'Game Collector', icon: '🏆', description: 'Added 3 favorite games' });
+    achievements.push({ id: 'collector', name: 'Game Collector', icon: IconTrophy, description: 'Added 3 favorite games' });
   }
   if (state.identity.handles.length >= 5) {
-    achievements.push({ id: 'connected', name: 'Well Connected', icon: '🌐', description: 'Added 5+ social handles' });
+    achievements.push({ id: 'connected', name: 'Well Connected', icon: IconGlobe, description: 'Added 5+ social handles' });
   }
   if (state.hobbies.selected.length >= 5) {
-    achievements.push({ id: 'renaissance', name: 'Renaissance Person', icon: '🎨', description: 'Selected 5+ hobbies' });
+    achievements.push({ id: 'renaissance', name: 'Renaissance Person', icon: IconPalette, description: 'Selected 5+ hobbies' });
   }
 
   return achievements;
@@ -138,37 +139,37 @@ export function getPersonalityInsights() {
 
   // Gaming insights
   if (state.gaming.topGames.length >= 3) {
-    insights.push({ category: 'Gaming', text: 'You have strong gaming preferences and clear favorites', emoji: '🎮' });
+    insights.push({ category: 'Gaming', text: 'You have strong gaming preferences and clear favorites', emoji: IconGame });
   }
   if (state.gaming.consoles.includes('pc') && state.gaming.consoles.includes('playstation')) {
-    insights.push({ category: 'Gaming', text: 'Multi-platform gamer - you appreciate different gaming experiences', emoji: '🎯' });
+    insights.push({ category: 'Gaming', text: 'Multi-platform gamer - you appreciate different gaming experiences', emoji: IconTrophy });
   }
 
   // Anime/Movies insights
   if (state.anime.watches && state.movies.topMovies.length) {
-    insights.push({ category: 'Media', text: 'Well-rounded media consumer - anime and live-action', emoji: '📺' });
+    insights.push({ category: 'Media', text: 'Well-rounded media consumer - anime and live-action', emoji: IconMovie });
   }
   if (state.anime.subDub === 'sub') {
-    insights.push({ category: 'Anime', text: 'Purist - you prefer the original voice acting', emoji: '🎌' });
+    insights.push({ category: 'Anime', text: 'Purist - you prefer the original voice acting', emoji: IconAnime });
   }
 
   // Social insights
   if (state.identity.handles.length >= 5) {
-    insights.push({ category: 'Social', text: 'Highly connected - you maintain presence across multiple platforms', emoji: '🌐' });
+    insights.push({ category: 'Social', text: 'Highly connected - you maintain presence across multiple platforms', emoji: IconGlobe });
   }
 
   // Hobby insights
   if (state.hobbies.selected.length >= 6) {
-    insights.push({ category: 'Lifestyle', text: 'Renaissance person - diverse interests and hobbies', emoji: '✨' });
+    insights.push({ category: 'Lifestyle', text: 'Renaissance person - diverse interests and hobbies', emoji: IconSparkle });
   }
   if (state.hobbies.creative) {
-    insights.push({ category: 'Creativity', text: 'Creative spirit - you express yourself through art', emoji: '🎨' });
+    insights.push({ category: 'Creativity', text: 'Creative spirit - you express yourself through art', emoji: IconPalette });
   }
 
   // Personality insights from wildcards
   const wildcardsCount = Object.values(state.wildcards).filter(w => w.value && !w.skip).length;
   if (wildcardsCount >= 4) {
-    insights.push({ category: 'Personality', text: 'Open book - you\'re comfortable sharing your thoughts', emoji: '📖' });
+    insights.push({ category: 'Personality', text: 'Open book - you\'re comfortable sharing your thoughts', emoji: IconBook });
   }
 
   return insights;

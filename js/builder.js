@@ -3,6 +3,7 @@ import { getRPGClass } from './data.js';
 import { escHtml, $ } from './utils.js';
 import { CARD_THEMES, CARD_LAYOUTS } from './themes.js';
 import { calculateCompletionStats, getPersonalityInsights } from './stats.js';
+import { IconPerson, IconAnime, IconGame, IconMovie } from './icons.js';
 
 export function getAllAvatarOptions(s) {
   const options = [];
@@ -111,12 +112,12 @@ export function renderBuilder() {
       <div class="field-hint">This image will be featured on your card</div>
       <div class="avatar-grid">
         ${avatars.length ? avatars.map(a => {
-          const typeEmoji = a.type === 'character' ? '👤' : a.type === 'anime' ? '🎌' : a.type === 'game' ? '🎮' : '🎬';
+          const typeIcon = a.type === 'character' ? IconPerson : a.type === 'anime' ? IconAnime : a.type === 'game' ? IconGame : IconMovie;
           return `
           <div class="avatar-option${cfg.avatarId === a.id ? ' selected' : ''}" data-avatar="${a.id}">
             <img src="${escHtml(a.image)}" alt="${escHtml(a.label)}" loading="lazy" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
             <div class="avatar-option-fallback" style="display:none">
-              <span class="avatar-option-emoji">${typeEmoji}</span>
+              <span class="avatar-option-icon">${typeIcon}</span>
             </div>
             <div class="avatar-option-label">${escHtml(a.label)}</div>
             <div class="avatar-option-type">${escHtml(a.type)}</div>
@@ -133,13 +134,13 @@ export function renderBuilder() {
       </div>
       <div class="highlight-grid">
         ${media.map(m => {
-          const typeEmoji = m.type === 'game' ? '🎮' : m.type === 'anime' ? '🎌' : '🎬';
+          const typeIcon = m.type === 'game' ? IconGame : m.type === 'anime' ? IconAnime : IconMovie;
           return `
           <label class="highlight-item${cfg.highlightedMedia.includes(m.id) ? ' selected' : ''}">
             <input type="checkbox" data-highlight="${m.id}" ${cfg.highlightedMedia.includes(m.id) ? 'checked' : ''} hidden>
             <img src="${escHtml(m.image)}" alt="${escHtml(m.name)}" loading="lazy" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
             <div class="highlight-item-fallback" style="display:none">
-              <span class="highlight-item-emoji">${typeEmoji}</span>
+              <span class="highlight-item-icon">${typeIcon}</span>
             </div>
             <div class="highlight-item-name">${escHtml(m.name)}</div>
           </label>`;

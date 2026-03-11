@@ -5,10 +5,13 @@ import { render, renderSection, renderProgressBar, renderNav, renderMediaShelf, 
 import { renderBuilder, getAllHighlightableMedia } from './builder.js';
 import { searchGames, searchAnime, searchAnimeCharacters, searchMovies, searchCities } from './api.js';
 import { generateCard, exportPDF } from './card.js';
-import { downloadPresentation, generateScript } from './present.js';
+import { downloadPresentation, generatePresentationHTML, generateScript } from './present.js';
 import { debounce, $, showToast } from './utils.js';
 
 const debouncedSearch = debounce(handleSearch, 350);
+
+// Track intro slide blob URL so it can be revoked on next open
+let _introBlobUrl = null;
 
 function tryComment(field) {
   const text = getComment(field, state);
@@ -320,7 +323,7 @@ async function handleSearch(wrapper, query) {
     }
     return `
       <div class="search-result-item" data-result='${JSON.stringify(r).replace(/'/g, '&#39;')}'>
-        ${type === 'city' ? '<div class="search-result-icon">📍</div>' : r.image ? `<img class="search-result-img" src="${r.image}" alt="" loading="lazy">` : '<div class="search-result-img"></div>'}
+        ${type === 'city' ? '<div class="search-result-icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg></div>' : r.image ? `<img class="search-result-img" src="${r.image}" alt="" loading="lazy">` : '<div class="search-result-img"></div>'}
         <div class="search-result-info">
           <div class="search-result-title">${r.name}</div>
           <div class="search-result-meta">${meta}</div>
@@ -663,9 +666,24 @@ window.skipIntro = function() {
   render();
 };
 
+function populateIntroIframe() {
+  const frame = document.getElementById('intro-preview-frame');
+  if (!frame) return;
+  // Revoke previous blob URL to avoid memory leak
+  if (_introBlobUrl) {
+    URL.revokeObjectURL(_introBlobUrl);
+    _introBlobUrl = null;
+  }
+  const html = generatePresentationHTML(state);
+  const blob = new Blob([html], { type: 'text/html' });
+  _introBlobUrl = URL.createObjectURL(blob);
+  frame.src = _introBlobUrl;
+}
+
 window.nextSection = async function() {
   if (state.showBuilder) {
     $('card-modal').classList.add('open');
+    populateIntroIframe();
     await generateCard(state);
     spawnConfetti();
     playRevealSound();
