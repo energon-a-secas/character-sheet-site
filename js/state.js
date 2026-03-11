@@ -18,6 +18,8 @@ export const state = {
     name: '',
     handles: [],
     country: '',
+    city: '',
+    timezone: '',
     bestTimeToPresent: '',
     description: '',
   },
@@ -27,28 +29,37 @@ export const state = {
     topGames: [],
     replayGame: null,
     favoriteCharacter: '',
+    worstGame: '',
   },
 
   anime: {
     watches: null,
     topAnime: [],
+    genres: [],
+    favoriteFromGenre: '',
     favoriteCharacterData: null,
     waifuHusbandoData: null,
     waifuHusbandoSkip: '',
     subDub: '',
     comfortRewatch: null,
+    worstAnime: '',
   },
 
   movies: {
     topMovies: [],
+    genres: [],
+    favoriteFromGenre: '',
     starWars: null,
     starWarsTrilogy: '',
     starWarsSide: '',
     marvel: null,
     marvelHero: '',
+    dc: null,
+    dcHero: '',
     comfortRewatch: null,
     favoriteQuote: '',
     favoriteQuoteSource: '',
+    worstMovie: '',
   },
 
   hobbies: {
@@ -96,6 +107,9 @@ export const state = {
     highlightedMedia: [],
     showSocials: true,
     showCollection: true,
+    theme: 'default',
+    layout: 'vertical',
+    highQuality: true,
   },
 
   // Auth / session (not persisted to localStorage)
@@ -126,8 +140,8 @@ export function resetState(s) {
   s.currentSection = 0;
   s.identity = { name: '', handles: [], description: '', country: '', bestTimeToPresent: '' };
   s.gaming = { consoles: [], topGames: [], replayGame: null, favoriteCharacter: '' };
-  s.anime = { watches: null, topAnime: [], favoriteCharacterData: null, waifuHusbandoData: null, waifuHusbandoSkip: '', subDub: '', comfortRewatch: null };
-  s.movies = { topMovies: [], starWars: null, starWarsTrilogy: '', starWarsSide: '', marvel: null, marvelHero: '', comfortRewatch: null, favoriteQuote: '', favoriteQuoteSource: '' };
+  s.anime = { watches: null, topAnime: [], genres: [], favoriteFromGenre: '', favoriteCharacterData: null, waifuHusbandoData: null, waifuHusbandoSkip: '', subDub: '', comfortRewatch: null };
+  s.movies = { topMovies: [], genres: [], favoriteFromGenre: '', starWars: null, starWarsTrilogy: '', starWarsSide: '', marvel: null, marvelHero: '', dc: null, dcHero: '', comfortRewatch: null, favoriteQuote: '', favoriteQuoteSource: '' };
   s.hobbies = { selected: [], custom: '', creative: '' };
   s.wildcards = {
     weirdThing: { value: '', skip: '' }, lifeHack: { value: '', skip: '' },
@@ -141,7 +155,7 @@ export function resetState(s) {
     freeTimeChoice: '', freeTimeCustom: '', truth1: '', truth2: '', lie: '',
   };
   s.showBuilder = false;
-  s.cardConfig = { avatarId: '', highlightedMedia: [], showSocials: true, showCollection: true };
+  s.cardConfig = { avatarId: '', highlightedMedia: [], showSocials: true, showCollection: true, theme: 'default', layout: 'vertical', highQuality: true };
   // _user, _sheetId, _sheetName are intentionally NOT reset (session survives startOver)
   localStorage.removeItem(STORAGE_KEY);
 }

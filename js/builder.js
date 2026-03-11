@@ -1,6 +1,8 @@
 import { state, save } from './state.js';
 import { getRPGClass } from './data.js';
 import { escHtml, $ } from './utils.js';
+import { CARD_THEMES, CARD_LAYOUTS } from './themes.js';
+import { calculateCompletionStats, getPersonalityInsights } from './stats.js';
 
 export function getAllAvatarOptions(s) {
   const options = [];
@@ -83,6 +85,8 @@ export function renderBuilder() {
   const media = getAllHighlightableMedia(state);
   const cfg = state.cardConfig;
   const rpgClass = getRPGClass(state);
+  const stats = calculateCompletionStats();
+  const insights = getPersonalityInsights();
 
   if (!cfg.avatarId && avatars.length) {
     cfg.avatarId = avatars[0].id;
@@ -100,16 +104,24 @@ export function renderBuilder() {
       <div class="builder-preview-class">${escHtml(rpgClass)}</div>
     </div>
 
+    ${renderStatsPanel(stats, insights)}
+
     <div class="field-group">
       <label class="field-label">Choose your avatar</label>
       <div class="field-hint">This image will be featured on your card</div>
       <div class="avatar-grid">
-        ${avatars.length ? avatars.map(a => `
+        ${avatars.length ? avatars.map(a => {
+          const typeEmoji = a.type === 'character' ? '👤' : a.type === 'anime' ? '🎌' : a.type === 'game' ? '🎮' : '🎬';
+          return `
           <div class="avatar-option${cfg.avatarId === a.id ? ' selected' : ''}" data-avatar="${a.id}">
-            <img src="${escHtml(a.image)}" alt="${escHtml(a.label)}" loading="lazy">
+            <img src="${escHtml(a.image)}" alt="${escHtml(a.label)}" loading="lazy" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
+            <div class="avatar-option-fallback" style="display:none">
+              <span class="avatar-option-emoji">${typeEmoji}</span>
+            </div>
             <div class="avatar-option-label">${escHtml(a.label)}</div>
             <div class="avatar-option-type">${escHtml(a.type)}</div>
-          </div>`).join('') : '<div class="builder-empty">No media selected in previous sections</div>'}
+          </div>`;
+        }).join('') : '<div class="builder-empty">No media selected in previous sections</div>'}
       </div>
     </div>
 
@@ -120,12 +132,47 @@ export function renderBuilder() {
         <button class="highlight-select-all" data-select-media="all">${cfg.highlightedMedia.length === media.length ? 'Deselect All' : 'Select All'}</button>
       </div>
       <div class="highlight-grid">
-        ${media.map(m => `
+        ${media.map(m => {
+          const typeEmoji = m.type === 'game' ? '🎮' : m.type === 'anime' ? '🎌' : '🎬';
+          return `
           <label class="highlight-item${cfg.highlightedMedia.includes(m.id) ? ' selected' : ''}">
             <input type="checkbox" data-highlight="${m.id}" ${cfg.highlightedMedia.includes(m.id) ? 'checked' : ''} hidden>
-            <img src="${escHtml(m.image)}" alt="${escHtml(m.name)}" loading="lazy">
+            <img src="${escHtml(m.image)}" alt="${escHtml(m.name)}" loading="lazy" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
+            <div class="highlight-item-fallback" style="display:none">
+              <span class="highlight-item-emoji">${typeEmoji}</span>
+            </div>
             <div class="highlight-item-name">${escHtml(m.name)}</div>
-          </label>`).join('')}
+          </label>`;
+        }).join('')}
+      </div>
+    </div>
+
+    <div class="field-group">
+      <label class="field-label">Card Theme</label>
+      <div class="field-hint">Choose your visual style</div>
+      <div class="theme-grid">
+        ${Object.values(CARD_THEMES).map(t => `
+          <button class="theme-option${cfg.theme === t.id ? ' selected' : ''}" data-theme="${t.id}" style="--theme-accent: ${t.accent}; --theme-bg: ${t.bg[0]}">
+            <div class="theme-preview" style="background: linear-gradient(135deg, ${t.bg[0]}, ${t.bg[1]}); border-color: ${t.border}">
+              <div class="theme-preview-text" style="color: ${t.textPrimary}">${t.name.charAt(0)}</div>
+            </div>
+            <div class="theme-option-name">${escHtml(t.name)}</div>
+          </button>`).join('')}
+      </div>
+    </div>
+
+    <div class="field-group">
+      <label class="field-label">Card Layout</label>
+      <div class="field-hint">Choose your card dimensions</div>
+      <div class="layout-grid">
+        ${Object.values(CARD_LAYOUTS).map(l => `
+          <button class="layout-option${cfg.layout === l.id ? ' selected' : ''}" data-layout="${l.id}">
+            <div class="layout-preview ${l.id}">
+              <div class="layout-preview-box"></div>
+            </div>
+            <div class="layout-option-name">${escHtml(l.name)}</div>
+            <div class="layout-option-desc">${escHtml(l.description)}</div>
+          </button>`).join('')}
       </div>
     </div>
 
@@ -139,6 +186,10 @@ export function renderBuilder() {
         <label class="builder-toggle">
           <input type="checkbox" data-builder-opt="showCollection" ${cfg.showCollection ? 'checked' : ''}>
           <span>Show favorite media</span>
+        </label>
+        <label class="builder-toggle">
+          <input type="checkbox" data-builder-opt="highQuality" ${cfg.highQuality ? 'checked' : ''}>
+          <span>High quality export (larger file size)</span>
         </label>
       </div>
     </div>
@@ -160,4 +211,56 @@ export function getSelectedAvatar() {
 export function getHighlightedMedia() {
   const all = getAllHighlightableMedia(state);
   return all.filter(m => state.cardConfig.highlightedMedia.includes(m.id));
+}
+
+function renderStatsPanel(stats, insights) {
+  const name = state.identity.name || 'friend';
+  const intro = `Hi! I'm ${name}. This card is how I like to be presented and introduced. Feel free to use it as icebreaker material, meeting prep, or just to get to know me better. Hope it helps us connect!`;
+  
+  return `
+    <div class="stats-panel">
+      <div class="stats-header">
+        <div class="stats-completion">
+          <div class="stats-completion-circle">
+            <svg viewBox="0 0 36 36" class="circular-chart">
+              <path class="circle-bg" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"/>
+              <path class="circle" stroke-dasharray="${stats.overall}, 100" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"/>
+              <text x="18" y="20.35" class="percentage">${stats.overall}%</text>
+            </svg>
+          </div>
+          <div class="stats-completion-text">
+            <div class="stats-completion-label">Profile Complete</div>
+            <div class="stats-completion-detail">${stats.filledFields} of ${stats.totalFields} fields</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="stats-intro">
+        <p>${escHtml(intro)}</p>
+      </div>
+
+      ${stats.achievements.length > 0 ? `
+        <div class="stats-achievements">
+          <div class="stats-subtitle">Achievements Unlocked</div>
+          <div class="achievement-list">
+            ${stats.achievements.map(a => `
+              <div class="achievement-badge" title="${escHtml(a.description)}">
+                <span class="achievement-icon">${a.icon}</span>
+                <span class="achievement-name">${escHtml(a.name)}</span>
+              </div>`).join('')}
+          </div>
+        </div>` : ''}
+
+      ${insights.length > 0 ? `
+        <div class="stats-insights">
+          <div class="stats-subtitle">Personality Insights</div>
+          <div class="insight-list">
+            ${insights.slice(0, 4).map(i => `
+              <div class="insight-item">
+                <span class="insight-emoji">${i.emoji}</span>
+                <span class="insight-text">${escHtml(i.text)}</span>
+              </div>`).join('')}
+          </div>
+        </div>` : ''}
+    </div>`;
 }

@@ -1,21 +1,21 @@
 export const SECTIONS = [
   { key: 'identity',  title: 'Identity',           glow: '--glow-identity',  flavor: 'Who you are — and how you want to be introduced.' },
-  { key: 'intro',     title: 'Your Story',          glow: '--glow-intro',     flavor: 'The 30-second intro — your job, your vibe, your city.' },
-  { key: 'gaming',    title: 'Gaming',              glow: '--glow-gaming',    flavor: 'What worlds have you conquered? Presenters: safe small-talk territory.' },
-  { key: 'anime',     title: 'Anime',               glow: '--glow-anime',     flavor: 'The culture check — sub or dub, we\'re not judging.' },
-  { key: 'movies',    title: 'Movies & Series',     glow: '--glow-movies',    flavor: 'What stories shaped you? Presenters: great for references and icebreakers.' },
-  { key: 'hobbies',   title: 'Hobbies',             glow: '--glow-hobbies',   flavor: 'Side quests IRL. Presenters: conversation starters.' },
-  { key: 'wildcards', title: 'Hot Takes & Games',   glow: '--glow-wildcards', flavor: 'Unpopular opinions, guilty pleasures, and one sneaky lie — who can guess it?' },
-  { key: 'extras',    title: 'Extras',              glow: '--glow-extras',    flavor: 'Meme of choice and anything else you want on your card.' },
+  { key: 'intro',     title: 'Your Story',         glow: '--glow-intro',     flavor: 'The 30-second intro — your job, your vibe, your city.' },
+  { key: 'gaming',    title: 'Gaming',             glow: '--glow-gaming',    flavor: 'What worlds have you conquered? Presenters: safe small-talk territory.' },
+  { key: 'anime',     title: 'Anime',              glow: '--glow-anime',     flavor: 'The culture check — sub or dub, we\'re not judging.' },
+  { key: 'movies',    title: 'Movies & Series',    glow: '--glow-movies',    flavor: 'What stories shaped you? Presenters: great for references and icebreakers.' },
+  { key: 'hobbies',   title: 'Hobbies',            glow: '--glow-hobbies',   flavor: 'Side quests IRL. Presenters: conversation starters.' },
+  { key: 'wildcards', title: 'Hot Takes & Games',  glow: '--glow-wildcards', flavor: 'Unpopular opinions, guilty pleasures, and one sneaky lie — who can guess it?' },
+  { key: 'extras',    title: 'Extras',             glow: '--glow-extras',    flavor: 'Meme of choice and anything else you want on your card.' },
 ];
 
 export const CONSOLES = [
-  { id: 'pc',          label: 'PC',          icon: '\u{1F5A5}' },
-  { id: 'playstation', label: 'PlayStation', icon: '\u{1F3AE}' },
-  { id: 'xbox',        label: 'Xbox',        icon: '\u{1F579}' },
-  { id: 'nintendo',    label: 'Nintendo',    icon: '\u{1F344}' },
-  { id: 'mobile',      label: 'Mobile',      icon: '\u{1F4F1}' },
-  { id: 'retro',       label: 'Retro',       icon: '\u{1F47E}' },
+  { id: 'pc',          label: 'PC',          icon: 'https://cdn.simpleicons.org/steam/white' },
+  { id: 'playstation', label: 'PlayStation', icon: 'https://cdn.simpleicons.org/playstation/white' },
+  { id: 'xbox',        label: 'Xbox',        icon: 'https://cdn.simpleicons.org/xbox/white' },
+  { id: 'nintendo',    label: 'Nintendo',    icon: 'https://cdn.simpleicons.org/nintendoswitch/white' },
+  { id: 'mobile',      label: 'Mobile',      icon: 'https://cdn.simpleicons.org/apple/white' },
+  { id: 'retro',       label: 'Retro',       icon: '<svg role="img" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path fill="currentColor" d="M0 21.653s3.154-.355 5.612-2.384c2.339-1.93 3.185-3.592 3.77-5.476.584-1.885.671-6.419.671-7.764V2.346H8.598v1.365c-.024 2.041-.2 5.918-1.135 8.444C5.203 18.242 0 18.775 0 18.775zm24 0s-3.154-.355-5.61-2.384c-2.342-1.93-3.187-3.592-3.772-5.476-.583-1.885-.671-6.419-.671-7.764V2.346H15.4l.001 1.365c.024 2.041.202 5.918 1.138 8.444 2.258 6.087 7.46 6.62 7.46 6.62zM10.659 2.348h2.685v19.306H10.66Z"/></svg>' },
 ];
 
 export const PLATFORMS = [
@@ -40,6 +40,16 @@ export const HOBBY_OPTIONS = [
   'Traveling', 'Pets', 'Streaming', 'Podcasts', 'Languages',
   'YouTube', 'Coding', 'Video Editing', 'Collecting', 'Meditation',
   'Martial Arts', 'Climbing', 'Cycling', 'Fishing', 'Cosplay',
+];
+
+export const ANIME_GENRES = [
+  'Isekai', 'Shonen', 'Seinen', 'Shojo', 'Mecha', 'Slice of Life',
+  'Romance', 'Horror', 'Psychological', 'Sports', 'Music', 'Fantasy',
+];
+
+export const MOVIE_GENRES = [
+  'Action', 'Sci-Fi', 'Horror', 'Comedy', 'Drama', 'Thriller',
+  'Fantasy', 'Romance', 'Documentary', 'Animation', 'Mystery', 'Adventure',
 ];
 
 export const FREE_TIME_OPTIONS = [
@@ -72,14 +82,14 @@ export const WILDCARDS = [
 ];
 
 export const RPG_CLASSES = {
+  'Pixel Paladin':       { match: (s) => countGaming(s) >= 4 },
+  'Otaku Guardian':      { match: (s) => countAnime(s) >= 4 },
+  'Cinephile Knight':    { match: (s) => countMovies(s) >= 4 },
+  'Creative Wanderer':   { match: (s) => s.hobbies.selected.length >= 5 },
+  'Wildcard Rogue':      { match: (s) => countWildcards(s) >= 5 },
   'Digital Ronin':       { match: (s) => countAnime(s) >= 2 && countGaming(s) >= 2 },
   'Screen Sage':         { match: (s) => countMovies(s) >= 2 && countAnime(s) >= 2 },
-  'Pixel Paladin':       { match: (s) => countGaming(s) >= 3 },
   'Cultural Explorer':   { match: (s) => countMovies(s) >= 2 && s.hobbies.selected.length >= 3 },
-  'Creative Wanderer':   { match: (s) => s.hobbies.selected.length >= 4 },
-  'Otaku Guardian':      { match: (s) => countAnime(s) >= 3 },
-  'Cinephile Knight':    { match: (s) => countMovies(s) >= 3 },
-  'Wildcard Rogue':      { match: (s) => countWildcards(s) >= 4 },
   'Balanced Adventurer': { match: () => true },
 };
 
@@ -114,10 +124,15 @@ function countWildcards(s) {
 }
 
 export function getRPGClass(s) {
+  // Calculate scores for each class
+  const scores = [];
   for (const [name, def] of Object.entries(RPG_CLASSES)) {
-    if (def.match(s)) return name;
+    if (def.match(s)) {
+      scores.push(name);
+      break; // Return first match
+    }
   }
-  return 'Balanced Adventurer';
+  return scores[0] || 'Balanced Adventurer';
 }
 
 export function getSectionFill(s, key) {

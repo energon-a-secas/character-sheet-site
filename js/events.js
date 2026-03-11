@@ -1,13 +1,19 @@
 import { state, save, resetState, convex, api, deepMerge } from './state.js';
+import { getComment, showComment, clearComment } from './comments.js';
 import { SECTIONS } from './data.js';
 import { render, renderSection, renderProgressBar, renderNav, renderMediaShelf, renderSectionDots } from './render.js';
 import { renderBuilder, getAllHighlightableMedia } from './builder.js';
-import { searchGames, searchAnime, searchAnimeCharacters, searchMovies } from './api.js';
+import { searchGames, searchAnime, searchAnimeCharacters, searchMovies, searchCities } from './api.js';
 import { generateCard, exportPDF } from './card.js';
 import { downloadPresentation, generateScript } from './present.js';
 import { debounce, $, showToast } from './utils.js';
 
 const debouncedSearch = debounce(handleSearch, 350);
+
+function tryComment(field) {
+  const text = getComment(field, state);
+  if (text) showComment(text);
+}
 
 export function bindEvents() {
   document.addEventListener('input', onInput);
@@ -31,12 +37,14 @@ function onInput(e) {
   if (el.dataset.field) {
     setNestedValue(state, el.dataset.field, el.value);
     save(state);
+    tryComment(el.dataset.field);
     return;
   }
 
   if (el.dataset.wildcard) {
     state.wildcards[el.dataset.wildcard].value = el.value;
     save(state);
+    tryComment('wildcards.' + el.dataset.wildcard);
     return;
   }
 
@@ -75,6 +83,7 @@ function onClick(e) {
     else state.gaming.consoles.push(id);
     save(state);
     renderSection(false);
+    tryComment('gaming.consoles');
     return;
   }
 
@@ -97,6 +106,7 @@ function onClick(e) {
     setNestedValue(state, btn.dataset.toggle, val);
     save(state);
     renderSection(false);
+    tryComment(btn.dataset.toggle);
     return;
   }
 
@@ -107,6 +117,7 @@ function onClick(e) {
     setNestedValue(state, key, current === btn.dataset.val ? '' : btn.dataset.val);
     save(state);
     renderSection(false);
+    tryComment(key);
     return;
   }
 
@@ -115,6 +126,27 @@ function onClick(e) {
     const idx = state.hobbies.selected.indexOf(hobby);
     if (idx >= 0) state.hobbies.selected.splice(idx, 1);
     else state.hobbies.selected.push(hobby);
+    save(state);
+    renderSection(false);
+    tryComment('hobbies.selected');
+    return;
+  }
+
+  if (el.dataset.animeGenre) {
+    const g = el.dataset.animeGenre;
+    const idx = state.anime.genres.indexOf(g);
+    if (idx >= 0) state.anime.genres.splice(idx, 1);
+    else state.anime.genres.push(g);
+    save(state);
+    renderSection(false);
+    return;
+  }
+
+  if (el.dataset.movieGenre) {
+    const g = el.dataset.movieGenre;
+    const idx = state.movies.genres.indexOf(g);
+    if (idx >= 0) state.movies.genres.splice(idx, 1);
+    else state.movies.genres.push(g);
     save(state);
     renderSection(false);
     return;
@@ -198,6 +230,22 @@ function onClick(e) {
     return;
   }
 
+  if (el.dataset.theme || el.closest('[data-theme]')) {
+    const opt = el.closest('[data-theme]') || el;
+    state.cardConfig.theme = opt.dataset.theme;
+    save(state);
+    renderBuilder();
+    return;
+  }
+
+  if (el.dataset.layout || el.closest('[data-layout]')) {
+    const opt = el.closest('[data-layout]') || el;
+    state.cardConfig.layout = opt.dataset.layout;
+    save(state);
+    renderBuilder();
+    return;
+  }
+
   if (el.dataset.dot !== undefined || el.closest('[data-dot]')) {
     const dot = el.closest('[data-dot]') || el;
     const idx = parseInt(dot.dataset.dot, 10);
@@ -256,29 +304,51 @@ async function handleSearch(wrapper, query) {
   else if (type === 'anime') results = await searchAnime(query);
   else if (type === 'character') results = await searchAnimeCharacters(query);
   else if (type === 'movie') results = await searchMovies(query);
+  else if (type === 'city') results = await searchCities(query);
 
   if (!results.length) {
     resultsEl.innerHTML = '<div class="search-loading">No results found</div>';
     return;
   }
 
-  resultsEl.innerHTML = results.map(r => `
-    <div class="search-result-item" data-result='${JSON.stringify(r).replace(/'/g, '&#39;')}'>
-      ${r.image ? `<img class="search-result-img" src="${r.image}" alt="" loading="lazy">` : '<div class="search-result-img"></div>'}
-      <div class="search-result-info">
-        <div class="search-result-title">${r.name}</div>
-        <div class="search-result-meta">${r.year || ''}${r.type ? ` \u00B7 ${r.type}` : ''}${r.platforms ? ` \u00B7 ${r.platforms}` : ''}${r.episodes ? ` \u00B7 ${r.episodes}` : ''}${r.nicknames ? ` \u00B7 ${r.nicknames}` : ''}</div>
-      </div>
-    </div>`).join('');
+  resultsEl.innerHTML = results.map(r => {
+    let meta = '';
+    if (type === 'city') {
+      meta = `${r.country || ''}${r.region ? ` \u00B7 ${r.region}` : ''}${r.timezone ? ` \u00B7 ${r.timezone}` : ''}`;
+    } else {
+      meta = `${r.year || ''}${r.type ? ` \u00B7 ${r.type}` : ''}${r.platforms ? ` \u00B7 ${r.platforms}` : ''}${r.episodes ? ` \u00B7 ${r.episodes}` : ''}${r.nicknames ? ` \u00B7 ${r.nicknames}` : ''}`;
+    }
+    return `
+      <div class="search-result-item" data-result='${JSON.stringify(r).replace(/'/g, '&#39;')}'>
+        ${type === 'city' ? '<div class="search-result-icon">📍</div>' : r.image ? `<img class="search-result-img" src="${r.image}" alt="" loading="lazy">` : '<div class="search-result-img"></div>'}
+        <div class="search-result-info">
+          <div class="search-result-title">${r.name}</div>
+          <div class="search-result-meta">${meta}</div>
+        </div>
+      </div>`;
+  }).join('');
 }
 
 function handleResultSelect(itemEl) {
   const wrapper = itemEl.closest('.search-wrapper');
   const stateKey = wrapper.dataset.stateKey;
+  const type = wrapper.dataset.searchType;
   const max = parseInt(wrapper.dataset.max, 10);
   const result = JSON.parse(itemEl.dataset.result);
   const resultsEl = wrapper.querySelector('.search-results');
   const input = wrapper.querySelector('.search-input');
+
+  // Special handling for city selection
+  if (type === 'city') {
+    state.identity.city = result.name;
+    state.identity.country = result.country;
+    state.identity.timezone = result.timezone;
+    input.value = result.name;
+    resultsEl.classList.remove('open');
+    save(state);
+    renderSection(false);
+    return;
+  }
 
   const current = getNestedValue(state, stateKey);
 
@@ -303,6 +373,7 @@ function handleResultSelect(itemEl) {
   save(state);
   renderSection(false);
   renderMediaShelf();
+  tryComment(stateKey);
 }
 
 function setNestedValue(obj, path, value) {
@@ -380,14 +451,24 @@ function deepMergeIntoState(data) {
   deepMerge(state, safeData);
 }
 
-// ── Auth window functions ────────────────────────────────────────────────────
+// ── Auth event listeners ──────────────────────────────────────────────────────
 
-window.toggleAuth = function() {
+document.getElementById('authToggle').addEventListener('click', () => {
   const panel = document.getElementById('authPanel');
   panel.classList.toggle('open');
-};
+});
 
-window.handleLogin = async function() {
+document.querySelectorAll('.auth-tab').forEach(tab => {
+  tab.addEventListener('click', () => {
+    const targetTab = tab.dataset.tab;
+    document.querySelectorAll('.auth-tab').forEach(t => t.classList.remove('active'));
+    tab.classList.add('active');
+    document.getElementById('authLoginForm').hidden = targetTab !== 'login';
+    document.getElementById('authRegisterForm').hidden = targetTab !== 'register';
+  });
+});
+
+document.getElementById('authLoginBtn').addEventListener('click', async () => {
   const username = document.getElementById('authLoginUser').value.trim();
   const password = document.getElementById('authLoginPass').value;
   const errEl = document.getElementById('authLoginError');
@@ -409,9 +490,9 @@ window.handleLogin = async function() {
     errEl.textContent = 'Connection error';
     errEl.hidden = false;
   }
-};
+});
 
-window.handleRegister = async function() {
+document.getElementById('authRegBtn').addEventListener('click', async () => {
   const username = document.getElementById('authRegUser').value.trim();
   const password = document.getElementById('authRegPass').value;
   const errEl = document.getElementById('authRegError');
@@ -433,9 +514,9 @@ window.handleRegister = async function() {
     errEl.textContent = 'Connection error';
     errEl.hidden = false;
   }
-};
+});
 
-window.handleLogout = function() {
+document.getElementById('authLogoutBtn').addEventListener('click', () => {
   state._user = null;
   state._sheetId = null;
   state._sheetName = null;
@@ -443,7 +524,7 @@ window.handleLogout = function() {
   updateAuthUI();
   document.getElementById('sheetsBar').hidden = true;
   showToast('Logged out');
-};
+});
 
 // ── Sheet window functions ───────────────────────────────────────────────────
 
@@ -591,6 +672,7 @@ window.nextSection = async function() {
     return;
   }
 
+  clearComment();
   if (state.currentSection < SECTIONS.length - 1) {
     state.currentSection++;
     save(state);
@@ -611,6 +693,7 @@ window.nextSection = async function() {
 };
 
 window.prevSection = function() {
+  clearComment();
   if (state.showBuilder) {
     state.showBuilder = false;
     save(state);

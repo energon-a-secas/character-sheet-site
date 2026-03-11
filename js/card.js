@@ -50,7 +50,7 @@ export async function generateCard(s) {
 
   drawBackground(ctx, totalH);
   drawHeader(ctx, s);
-  drawStats(ctx, s);
+  // drawStats(ctx, s); // Removed - stats boxes no longer shown
   let y = drawBody(ctx, s);
 
   if (s.cardConfig.showSocials && s.identity.handles.length) {
@@ -82,7 +82,7 @@ function preloadImages(urls) {
 }
 
 function measureCard(ctx, s, media) {
-  let y = 265;
+  let y = 210; // Start higher without stats boxes
   y = measureYourStory(ctx, s, y);
   y = measureHobbies(ctx, s, y);
   y = measureTwoColRow(ctx, s, y);
@@ -309,7 +309,7 @@ function drawStats(ctx, s) {
 }
 
 function drawBody(ctx, s) {
-  let y = 265;
+  let y = 210; // Start higher since we removed stats boxes
 
   y = drawYourStorySection(ctx, s, y);
   y = drawHobbiesSection(ctx, s, y);

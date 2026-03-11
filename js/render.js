@@ -1,9 +1,10 @@
 import { state } from './state.js';
-import { SECTIONS, CONSOLES, PLATFORMS, HOBBY_OPTIONS, WILDCARDS, FREE_TIME_OPTIONS, getSectionFill } from './data.js';
+import { SECTIONS, CONSOLES, PLATFORMS, HOBBY_OPTIONS, WILDCARDS, FREE_TIME_OPTIONS, ANIME_GENRES, MOVIE_GENRES, getSectionFill } from './data.js';
 import { escHtml, $ } from './utils.js';
 
 let lastRenderedSection = -1;
 let lastNavigationDirection = 1; // 1 = forward, -1 = backward
+const lastSectionFills = {}; // track per-section fill to detect full completion
 
 export function render() {
   if (state.showBuilder) {
@@ -17,6 +18,7 @@ export function render() {
       renderBuilder();
       renderMediaShelf();
       updateArrows(state);
+      updateSheetsBarVisibility();
     });
     return;
   }
@@ -31,7 +33,15 @@ export function render() {
   renderNav();
   renderMediaShelf();
   updateArrows(state);
+  updateSheetsBarVisibility();
   lastRenderedSection = state.currentSection;
+}
+
+function updateSheetsBarVisibility() {
+  const sheetsBar = document.getElementById('sheetsBar');
+  if (sheetsBar) {
+    sheetsBar.hidden = !state._user;
+  }
 }
 
 function updateArrows(s) {
@@ -59,14 +69,29 @@ export function renderProgressBar() {
 export function renderSectionDots() {
   const container = $('section-dots');
   if (!container) return;
+  const newlyFull = [];
   container.innerHTML = SECTIONS.map((sec, i) => {
     const fill = getSectionFill(state, sec.key);
+    const wasFull = lastSectionFills[sec.key] >= 1;
+    const isFull = fill >= 1;
+    if (isFull && !wasFull) newlyFull.push(i);
+    lastSectionFills[sec.key] = fill;
     const active = i === state.currentSection;
-    const fillClass = fill >= 1 ? ' dot-full' : fill > 0 ? ' dot-partial' : '';
+    const fillClass = isFull ? ' dot-full' : fill > 0 ? ' dot-partial' : '';
     return `<button type="button" class="section-dot${active ? ' dot-active' : ''}${fillClass}" data-dot="${i}" title="${sec.title}" aria-label="${sec.title}, section ${i + 1} of ${SECTIONS.length}" style="--dot-glow: var(${sec.glow})">
       <svg viewBox="0 0 20 20"><circle cx="10" cy="10" r="8" fill="none" stroke-width="2" stroke="currentColor" opacity="0.3"/>${fill > 0 ? `<circle cx="10" cy="10" r="8" fill="none" stroke-width="2" stroke="currentColor" stroke-dasharray="${50.3}" stroke-dashoffset="${50.3 * (1 - fill)}" class="dot-fill-ring"/>` : ''}</svg>
     </button>`;
   }).join('');
+  // Trigger ping animation on newly-completed dots
+  if (newlyFull.length) {
+    const btns = container.querySelectorAll('.section-dot');
+    newlyFull.forEach(i => {
+      const btn = btns[i];
+      if (!btn) return;
+      btn.classList.add('dot-ping');
+      btn.addEventListener('animationend', () => btn.classList.remove('dot-ping'), { once: true });
+    });
+  }
 }
 
 export function renderNav() {
@@ -99,6 +124,7 @@ export function renderSection(animate) {
     case 'intro':     html += renderIntro(); break;
   }
 
+  html += '<div id="section-comment" class="section-comment" hidden></div>';
   html += '</div>';
   if (sec.key === 'intro') {
     html += `<div class="skip-intro-row"><button class="skip-intro-btn" onclick="skipIntro()">Skip — jump to the fun stuff →</button></div>`;
@@ -115,8 +141,12 @@ function renderIdentity() {
     </div>
     <div class="field-group">
       <label class="field-label">Where in the world are you?</label>
-      <div class="field-hint">So nobody schedules 8am your time by accident.</div>
-      <input class="field-input" type="text" value="${escHtml(d.country)}" data-field="identity.country" placeholder="e.g. Chile, Germany, Remote" maxlength="60">
+      <div class="field-hint">Search for your city to auto-detect timezone</div>
+      <div class="search-wrapper" data-search-type="city" data-state-key="identity.city" data-max="1">
+        <input class="field-input search-input" type="text" value="${escHtml(d.city)}" placeholder="Search for your city..." maxlength="100" autocomplete="off">
+        <div class="search-results"></div>
+      </div>
+      ${d.timezone ? `<div class="timezone-display">📍 ${escHtml(d.city)}${d.country ? ', ' + escHtml(d.country) : ''} <span class="timezone-badge">${escHtml(d.timezone)}</span></div>` : ''}
     </div>
     <div class="field-group">
       <label class="field-label">When are you most human?</label>
@@ -153,7 +183,11 @@ function renderGaming() {
       <div class="console-grid">
         ${CONSOLES.map(c => `
           <div class="console-option${d.consoles.includes(c.id) ? ' selected' : ''}" data-console="${c.id}">
-            <span class="console-icon">${c.icon}</span>
+            ${c.icon.startsWith('http') 
+              ? `<img src="${c.icon}" class="console-icon-img" alt="${escHtml(c.label)}" onerror="this.style.display='none';">` 
+              : c.icon.startsWith('<svg') 
+                ? `<span class="console-icon-svg">${c.icon}</span>`
+                : `<span class="console-icon">${c.icon}</span>`}
             ${escHtml(c.label)}
           </div>`).join('')}
       </div>
@@ -171,6 +205,11 @@ function renderGaming() {
     <div class="field-group">
       <label class="field-label">Favorite game character?</label>
       <input class="field-input" type="text" value="${escHtml(d.favoriteCharacter)}" data-field="gaming.favoriteCharacter" placeholder="Master Chief, Tifa, Link..." maxlength="60">
+    </div>
+    <div class="field-group">
+      <label class="field-label">Worst game you've ever played?</label>
+      <div class="field-hint">The one you wish you could un-play</div>
+      <input class="field-input" type="text" value="${escHtml(d.worstGame)}" data-field="gaming.worstGame" placeholder="That game that broke your heart..." maxlength="100">
     </div>`;
 
   return html;
@@ -189,6 +228,24 @@ function renderAnime() {
 
   if (d.watches === true) {
     html += '<div class="sub-section">';
+    
+    html += `
+      <div class="field-group">
+        <label class="field-label">What genres do you enjoy?</label>
+        <div class="field-hint">Pick your favorite anime genres</div>
+        <div class="hobby-grid">
+          ${ANIME_GENRES.map(g => `<button class="hobby-tag${d.genres.includes(g) ? ' active' : ''}" data-anime-genre="${escHtml(g)}">${escHtml(g)}</button>`).join('')}
+        </div>
+      </div>`;
+
+    if (d.genres.length > 0) {
+      html += `
+        <div class="field-group">
+          <label class="field-label">Favorite ${d.genres.join(', ')} anime?</label>
+          <input class="field-input" type="text" value="${escHtml(d.favoriteFromGenre)}" data-field="anime.favoriteFromGenre" placeholder="Your favorite from these genres" maxlength="100">
+        </div>`;
+    }
+    
     html += renderSearchField('Top 3 anime', 'anime', 'anime.topAnime', d.topAnime, 3, 'Search anime...');
 
     if (d.topAnime.length) {
@@ -214,6 +271,14 @@ function renderAnime() {
       </div>`;
 
     html += renderSearchField('Comfort rewatch anime?', 'anime', 'anime.comfortRewatch', d.comfortRewatch ? [d.comfortRewatch] : [], 1, 'Search anime...');
+    
+    html += `
+      <div class="field-group">
+        <label class="field-label">Worst anime you've ever watched?</label>
+        <div class="field-hint">The one that made you question your taste</div>
+        <input class="field-input" type="text" value="${escHtml(d.worstAnime)}" data-field="anime.worstAnime" placeholder="That anime you regret starting..." maxlength="100">
+      </div>`;
+    
     html += '</div>';
   }
 
@@ -224,6 +289,23 @@ function renderMovies() {
   const d = state.movies;
   let html = `
     <div class="field-hint section-hint" style="margin-bottom:var(--space-4)">Presenters: your picks here are perfect for references and icebreakers.</div>`;
+
+  html += `
+    <div class="field-group">
+      <label class="field-label">What genres do you enjoy?</label>
+      <div class="field-hint">Pick your favorite movie/series genres</div>
+      <div class="hobby-grid">
+        ${MOVIE_GENRES.map(g => `<button class="hobby-tag${d.genres.includes(g) ? ' active' : ''}" data-movie-genre="${escHtml(g)}">${escHtml(g)}</button>`).join('')}
+      </div>
+    </div>`;
+
+  if (d.genres.length > 0) {
+    html += `
+      <div class="field-group">
+        <label class="field-label">Favorite ${d.genres.join(', ')} movie/series?</label>
+        <input class="field-input" type="text" value="${escHtml(d.favoriteFromGenre)}" data-field="movies.favoriteFromGenre" placeholder="Your favorite from these genres" maxlength="100">
+      </div>`;
+  }
 
   html += renderSearchField('Top 3 movies or series', 'movie', 'movies.topMovies', d.topMovies, 3, 'Search movies and series...');
 
@@ -281,6 +363,25 @@ function renderMovies() {
     </div>`;
   }
 
+  html += `
+    <div class="field-group">
+      <label class="field-label">DC fan?</label>
+      <div class="toggle-row">
+        <button class="toggle-btn${d.dc === true ? ' active' : ''}" data-toggle="movies.dc" data-val="true">Yes</button>
+        <button class="toggle-btn${d.dc === false ? ' active' : ''}" data-toggle="movies.dc" data-val="false">Nah</button>
+      </div>
+    </div>`;
+
+  if (d.dc === true) {
+    html += `<div class="sub-section">
+      <div class="sub-section-title">DC Comics</div>
+      <div class="field-group">
+        <label class="field-label">Favorite hero?</label>
+        <input class="field-input" type="text" value="${escHtml(d.dcHero)}" data-field="movies.dcHero" placeholder="Batman, Superman, Wonder Woman..." maxlength="60">
+      </div>
+    </div>`;
+  }
+
   html += renderSearchField('Comfort rewatch?', 'movie', 'movies.comfortRewatch', d.comfortRewatch ? [d.comfortRewatch] : [], 1, 'Search movies and series...');
 
   html += `
@@ -288,6 +389,11 @@ function renderMovies() {
       <label class="field-label">Favorite quote?</label>
       <input class="field-input" type="text" value="${escHtml(d.favoriteQuote)}" data-field="movies.favoriteQuote" placeholder="Yippee-ki-yay..." maxlength="150">
       <input class="field-input" type="text" value="${escHtml(d.favoriteQuoteSource)}" data-field="movies.favoriteQuoteSource" placeholder="From which movie or series?" maxlength="60" style="margin-top:var(--space-2)">
+    </div>
+    <div class="field-group">
+      <label class="field-label">Worst movie or series you've ever watched?</label>
+      <div class="field-hint">The one you wish you could unsee</div>
+      <input class="field-input" type="text" value="${escHtml(d.worstMovie)}" data-field="movies.worstMovie" placeholder="That disappointment you'll never forgive..." maxlength="100">
     </div>`;
 
   return html;
@@ -387,11 +493,6 @@ function renderIntro() {
         </div>
       </div>
       <div class="field-group">
-        <label class="field-label">Which city?</label>
-        <div class="field-hint">More specific than your country — helps with timezone context</div>
-        <input class="field-input" type="text" value="${escHtml(d.city)}" data-field="intro.city" placeholder="Santiago, Berlin, Remote..." maxlength="60">
-      </div>
-      <div class="field-group">
         <label class="field-label">Your proudest career moment or achievement</label>
         <div class="field-hint">The thing you'd mention if someone asked what you're most proud of</div>
         <input class="field-input" type="text" value="${escHtml(d.careerHighlight)}" data-field="intro.careerHighlight" placeholder="Shipped X, led Y, built Z from scratch..." maxlength="120">
@@ -450,12 +551,16 @@ function renderSearchField(label, type, stateKey, selected, max, placeholder) {
 
   let tags = '';
   if (type !== 'game' && type !== 'anime' && type !== 'movie') {
-    tags = (selected || []).map((item, i) => `
+    tags = (selected || []).map((item, i) => {
+      const typeEmoji = type === 'character' ? '👤' : '🎌';
+      return `
       <span class="selected-tag">
-        ${item.image ? `<img src="${escHtml(item.image)}" alt="">` : ''}
+        ${item.image ? `<img src="${escHtml(item.image)}" alt="" onerror="this.style.display='none'; this.nextElementSibling.style.display='inline-block';">` : ''}
+        <span class="selected-tag-emoji" style="display:${item.image ? 'none' : 'inline-block'}">${typeEmoji}</span>
         ${escHtml(item.name)}
         <span class="tag-remove" data-remove="${stateKey}" data-idx="${i}">&times;</span>
-      </span>`).join('');
+      </span>`;
+    }).join('');
   }
 
   return `
@@ -478,7 +583,7 @@ export function renderMediaShelf() {
     ...(state.anime.comfortRewatch ? [{ ...state.anime.comfortRewatch, type: 'anime' }] : []),
     ...state.movies.topMovies.map(m => ({ ...m, type: 'movie' })),
     ...(state.movies.comfortRewatch ? [{ ...state.movies.comfortRewatch, type: 'movie' }] : []),
-  ].filter(m => m.image);
+  ];
 
   if (!allMedia.length) {
     shelf.style.display = 'none';
@@ -489,10 +594,19 @@ export function renderMediaShelf() {
   shelf.innerHTML = `
     <div class="shelf-label">Your picks</div>
     <div class="shelf-scroll">
-      ${allMedia.map(m => `
+      ${allMedia.map(m => {
+        const typeEmoji = m.type === 'game' ? '🎮' : m.type === 'anime' ? '🎌' : '🎬';
+        const imgHtml = m.image 
+          ? `<img src="${escHtml(m.image)}" alt="${escHtml(m.name)}" loading="lazy" onerror="this.onerror=null; this.style.display='none'; this.nextElementSibling.style.display='flex';">`
+          : '';
+        return `
         <div class="shelf-item shelf-item--${m.type}">
-          <img src="${escHtml(m.image)}" alt="${escHtml(m.name)}" loading="lazy">
+          ${imgHtml}
+          <div class="shelf-item-fallback" style="display:${m.image ? 'none' : 'flex'}">
+            <span class="shelf-item-emoji">${typeEmoji}</span>
+          </div>
           <div class="shelf-item-name">${escHtml(m.name)}</div>
-        </div>`).join('')}
+        </div>`;
+      }).join('')}
     </div>`;
 }

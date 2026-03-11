@@ -2,8 +2,6 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <meta http-equiv="X-Frame-Options" content="DENY">
-  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' cdnjs.cloudflare.com https://esm.sh; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: blob: media.rawg.io image.tmdb.org cdn.myanimelist.net; connect-src 'self' charactersheet-api.neorgon.workers.dev https://*.convex.cloud https://esm.sh; frame-ancestors 'none'">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Character Sheet | Know Your Party</title>
   <meta name="description" content="Share who you are and how you like to be presented to. Build your RPG-style card for remote teams — timezone, vibes, and how to run meetings that stick.">
@@ -38,8 +36,12 @@
         <div class="header-subtitle">About you — and how to present to you.</div>
       </div>
     </div>
-    <button class="header-auth-toggle" id="authToggle" onclick="toggleAuth()">Log In</button>
-    <a class="header-home" href="https://neorgon.com/" title="neorgon.com" aria-label="Neorgon home">
+    <button class="auth-toggle" id="authToggle" aria-label="Account">
+      <svg viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+        <path d="M7.5 6.5C7.5 8.981 9.519 11 12 11s4.5-2.019 4.5-4.5S14.481 2 12 2 7.5 4.019 7.5 6.5zM20 21h1v-1c0-3.859-3.141-7-7-7h-4c-3.86 0-7 3.141-7 7v1h17z"/>
+      </svg>
+    </button>
+    <a class="header-home" href="https://neorgon.com/" title="neorgon.com" aria-label="Neorgon home" style="margin-left:8px">
       <svg viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
         <path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/>
       </svg>
@@ -55,18 +57,18 @@
       <div class="auth-form" id="authLoginForm">
         <input type="text" id="authLoginUser" placeholder="Username" maxlength="20" autocomplete="username">
         <input type="password" id="authLoginPass" placeholder="Password" autocomplete="current-password">
-        <button class="auth-submit" id="authLoginBtn" onclick="handleLogin()">Log In</button>
+        <button class="auth-submit" id="authLoginBtn">Log In</button>
         <div class="auth-error" id="authLoginError" hidden></div>
       </div>
       <div class="auth-form" id="authRegisterForm" hidden>
         <input type="text" id="authRegUser" placeholder="Choose a username" maxlength="20" autocomplete="username">
         <input type="password" id="authRegPass" placeholder="Choose a password" autocomplete="new-password">
-        <button class="auth-submit" id="authRegBtn" onclick="handleRegister()">Create Account</button>
+        <button class="auth-submit" id="authRegBtn">Create Account</button>
         <div class="auth-error" id="authRegError" hidden></div>
       </div>
       <div class="auth-user-info" id="authUserInfo" hidden>
         <span class="auth-username" id="authDisplayUser"></span>
-        <button class="auth-logout" onclick="handleLogout()">Log Out</button>
+        <button class="auth-logout" id="authLogoutBtn">Log Out</button>
       </div>
     </div>
   </div>
@@ -135,8 +137,13 @@
       <button class="modal-close" onclick="closeCardModal()" aria-label="Close card preview">&times;</button>
       <canvas id="card-canvas" width="800" height="1100"></canvas>
       <div class="card-modal-actions">
-        <button class="btn btn-primary" onclick="downloadCard()">Download PNG</button>
-        <button class="btn btn-primary" onclick="downloadPDF()" style="background: linear-gradient(135deg, #fb923c, #fbbf24); box-shadow: 0 4px 16px rgba(251,146,60,.3)">Download PDF</button>
+        <button class="btn btn-primary" onclick="downloadCard()">📥 Download PNG</button>
+        <button class="btn btn-primary" onclick="downloadHighResCard()" style="background: linear-gradient(135deg, #34d399, #10b981)">✨ Download High-Res</button>
+        <button class="btn btn-primary" onclick="downloadPDF()" style="background: linear-gradient(135deg, #fb923c, #fbbf24)">📄 Download PDF</button>
+      </div>
+      <div class="card-modal-actions" style="margin-top: 12px;">
+        <button class="btn btn-secondary" onclick="shareCard('image')">📤 Share Card</button>
+        <button class="btn btn-secondary" onclick="generateQRCode()">📱 QR Code</button>
         <button class="btn btn-secondary" onclick="copyScript()">📋 Copy Presenter Script</button>
         <button class="btn btn-secondary" onclick="closeCardModal()">Close</button>
       </div>
