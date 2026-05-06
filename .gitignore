@@ -1,9 +1,23 @@
-env.js
+# ── macOS ─────────────────────────────────────────────────────────────────────
 .DS_Store
-node_modules/
-.wrangler/
-.crush/
-# Claude AI guidance (maintained centrally in .claude/project-claudes/)
-CLAUDE.md
 
-.env.local
+# ── Playwright MCP (Claude Code browser automation — screenshots, logs) ───────
+.playwright-mcp/
+
+# ── Playwright test artifacts ─────────────────────────────────────────────────
+test-results/
+playwright-report/
+blob-report/
+
+# ── Node ──────────────────────────────────────────────────────────────────────
+node_modules/
+npm-debug.log*
+package-lock.json
+
+# ── Cloudflare Worker ─────────────────────────────────────────────────────────
+.wrangler/
+
+# ── Secrets — never commit ────────────────────────────────────────────────────
+.env
+.env.*
+env.js
