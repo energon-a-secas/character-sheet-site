@@ -8,7 +8,7 @@
  * @module
  */
 
-import type * as auth from "../auth.js";
+import type * as migration from "../migration.js";
 import type * as sheets from "../sheets.js";
 
 import type {
@@ -18,7 +18,7 @@ import type {
 } from "convex/server";
 
 declare const fullApi: ApiFromModules<{
-  auth: typeof auth;
+  migration: typeof migration;
   sheets: typeof sheets;
 }>;
 

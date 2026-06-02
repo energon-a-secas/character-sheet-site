@@ -22,16 +22,6 @@ export function bindEvents() {
   document.addEventListener('input', onInput);
   document.addEventListener('click', onClick);
   document.addEventListener('keydown', onKeydown);
-
-  // Restore session from localStorage
-  const savedUser = localStorage.getItem('cs-user');
-  if (savedUser) {
-    try {
-      state._user = JSON.parse(savedUser);
-      updateAuthUI();
-      loadUserSheets();
-    } catch { localStorage.removeItem('cs-user'); }
-  }
 }
 
 function onInput(e) {
@@ -67,16 +57,6 @@ function onInput(e) {
 
 function onClick(e) {
   const el = e.target;
-
-  // Auth tab switching
-  if (el.matches('.auth-tab')) {
-    document.querySelectorAll('.auth-tab').forEach(t => t.classList.remove('active'));
-    el.classList.add('active');
-    const tab = el.dataset.tab;
-    document.getElementById('authLoginForm').hidden = tab !== 'login';
-    document.getElementById('authRegisterForm').hidden = tab !== 'register';
-    return;
-  }
 
   if (el.dataset.console || el.closest('[data-console]')) {
     const opt = el.closest('[data-console]');
@@ -400,27 +380,49 @@ function getNestedValue(obj, path) {
 
 // ── Auth helpers ────────────────────────────────────────────────────────────
 
+function openAuthModal() {
+  const modal = document.getElementById('authModal');
+  if (!modal) return;
+  const title = document.getElementById('authModalTitle');
+  if (title) title.textContent = state._user ? 'Account' : 'Sign in';
+  modal.classList.add('open');
+  modal.setAttribute('aria-hidden', 'false');
+  document.body.classList.add('auth-modal-open');
+  if (state._user) void refreshLegacyLinkSection();
+}
+
+function closeAuthModal() {
+  const modal = document.getElementById('authModal');
+  if (!modal) return;
+  modal.classList.remove('open');
+  modal.setAttribute('aria-hidden', 'true');
+  document.body.classList.remove('auth-modal-open');
+}
+
 function updateAuthUI() {
   const toggle = document.getElementById('authToggle');
   const userInfo = document.getElementById('authUserInfo');
-  const loginForm = document.getElementById('authLoginForm');
-  const regForm = document.getElementById('authRegisterForm');
+  const authGate = document.getElementById('authGate');
+  const title = document.getElementById('authModalTitle');
   if (!toggle) return;
 
+  if (title) {
+    title.textContent = state._user ? 'Account' : 'Sign in';
+  }
+
   if (state._user) {
-    toggle.textContent = state._user.username;
     toggle.classList.add('logged-in');
+    toggle.setAttribute('aria-label', `Account: ${state._user.label}`);
+    if (authGate) authGate.hidden = true;
     userInfo.hidden = false;
-    loginForm.hidden = true;
-    regForm.hidden = true;
-    document.getElementById('authDisplayUser').textContent = state._user.username;
+    const du = document.getElementById('authDisplayUser');
+    if (du) du.textContent = state._user.label;
     document.getElementById('sheetsBar').hidden = false;
   } else {
-    toggle.textContent = 'Log In';
     toggle.classList.remove('logged-in');
+    toggle.setAttribute('aria-label', 'Account');
+    if (authGate) authGate.hidden = false;
     userInfo.hidden = true;
-    loginForm.hidden = false;
-    regForm.hidden = true;
     document.getElementById('sheetsBar').hidden = true;
   }
 }
@@ -428,7 +430,7 @@ function updateAuthUI() {
 async function loadUserSheets() {
   if (!state._user) return;
   try {
-    const sheets = await convex.query(api.sheets.list, { userId: state._user.id });
+    const sheets = await convex.query(api.sheets.list, {});
     const select = document.getElementById('sheetSelect');
     if (!select) return;
     select.innerHTML = '<option value="">— select a sheet —</option>';
@@ -440,6 +442,122 @@ async function loadUserSheets() {
       select.appendChild(opt);
     });
   } catch { /* Convex not configured yet */ }
+}
+
+async function refreshLegacyLinkSection() {
+  const section = document.getElementById('legacyLinkSection');
+  const msg = document.getElementById('legacyLinkMessage');
+  if (!section) return;
+  if (!state._user) {
+    section.hidden = true;
+    return;
+  }
+  try {
+    const link = await convex.query(api.migration.myAccountLink, {});
+    section.hidden = !!link;
+    if (msg) {
+      msg.hidden = true;
+      msg.textContent = '';
+      msg.classList.remove('legacy-link-message--err');
+    }
+  } catch {
+    section.hidden = true;
+  }
+}
+
+async function onLegacyLinkClick() {
+  const userEl = document.getElementById('legacyLinkUser');
+  const passEl = document.getElementById('legacyLinkPassword');
+  const msg = document.getElementById('legacyLinkMessage');
+  const section = document.getElementById('legacyLinkSection');
+  const username = userEl?.value?.trim() || '';
+  const password = passEl?.value || '';
+  if (!username || !password) {
+    if (msg) {
+      msg.textContent = 'Enter legacy username and password.';
+      msg.classList.add('legacy-link-message--err');
+      msg.hidden = false;
+    }
+    return;
+  }
+  try {
+    const res = await convex.mutation(api.migration.linkLegacyAccount, { username, password });
+    if (res.ok) {
+      if (msg) {
+        msg.textContent = `Linked legacy user @${res.legacyUsername}.`;
+        msg.classList.remove('legacy-link-message--err');
+        msg.hidden = false;
+      }
+      if (userEl) userEl.value = '';
+      if (passEl) passEl.value = '';
+      if (section) section.hidden = true;
+      showToast('Legacy account linked');
+    } else if (msg) {
+      msg.textContent = res.error || 'Link failed';
+      msg.classList.add('legacy-link-message--err');
+      msg.hidden = false;
+    }
+  } catch {
+    if (msg) {
+      msg.textContent = 'Link failed. Try again.';
+      msg.classList.add('legacy-link-message--err');
+      msg.hidden = false;
+    }
+  }
+}
+
+/** Clerk + Convex JWT via vendored neorgon-auth-client. */
+export async function initCharacterSheetAuth() {
+  const pk = document.querySelector('meta[name="clerk-publishable-key"]')?.content?.trim();
+  if (!pk) {
+    console.warn('Character Sheet: add <meta name="clerk-publishable-key" content="pk_…"> for cloud saves.');
+    updateAuthUI();
+    return null;
+  }
+  try {
+    const { initNeorgonClerkConvex, neorgonDisplayLabel } = await import('./vendor/neorgon-auth.js');
+    const clerk = await initNeorgonClerkConvex({
+      convex,
+      publishableKey: pk,
+      signInHost: '#neorgon-signin-mount',
+      userButtonHost: '#neorgon-user-mount',
+      signInProps: {
+        appearance: {
+          layout: {
+            // Hides the "Development mode" footer on test keys (pk_test_). Production: use pk_live_.
+            unsafe_disableDevelopmentModeWarnings: true,
+          },
+          variables: {
+            colorPrimary: '#0063e5',
+            colorTextOnPrimaryBackground: '#ffffff',
+            borderRadius: '10px',
+          },
+        },
+        localization: {
+          formFieldInputPlaceholder__emailAddress_username: 'Email address or username',
+          formFieldLabel__emailAddress_username: 'Email or username',
+        },
+      },
+      onSession: ({ clerk, hasSession }) => {
+        if (hasSession) {
+          state._user = { label: neorgonDisplayLabel(clerk) };
+          closeAuthModal();
+        } else {
+          state._user = null;
+          state._sheetId = null;
+          state._sheetName = null;
+        }
+        updateAuthUI();
+        if (hasSession) void loadUserSheets();
+        void refreshLegacyLinkSection();
+      },
+    });
+    return clerk;
+  } catch (e) {
+    console.warn('Character Sheet: Clerk init failed', e);
+    updateAuthUI();
+    return null;
+  }
 }
 
 function getSheetData(s) {
@@ -457,76 +575,22 @@ function deepMergeIntoState(data) {
 // ── Auth event listeners ──────────────────────────────────────────────────────
 
 document.getElementById('authToggle').addEventListener('click', () => {
-  const panel = document.getElementById('authPanel');
-  panel.classList.toggle('open');
+  const modal = document.getElementById('authModal');
+  if (modal?.classList.contains('open')) closeAuthModal();
+  else openAuthModal();
 });
 
-document.querySelectorAll('.auth-tab').forEach(tab => {
-  tab.addEventListener('click', () => {
-    const targetTab = tab.dataset.tab;
-    document.querySelectorAll('.auth-tab').forEach(t => t.classList.remove('active'));
-    tab.classList.add('active');
-    document.getElementById('authLoginForm').hidden = targetTab !== 'login';
-    document.getElementById('authRegisterForm').hidden = targetTab !== 'register';
-  });
-});
+document.getElementById('authModalClose')?.addEventListener('click', closeAuthModal);
+document.getElementById('authModalBackdrop')?.addEventListener('click', closeAuthModal);
 
-document.getElementById('authLoginBtn').addEventListener('click', async () => {
-  const username = document.getElementById('authLoginUser').value.trim();
-  const password = document.getElementById('authLoginPass').value;
-  const errEl = document.getElementById('authLoginError');
-  errEl.hidden = true;
-  try {
-    const result = await convex.mutation(api.auth.login, { username, password });
-    if (result.ok) {
-      state._user = { id: result.userId, username: result.username };
-      localStorage.setItem('cs-user', JSON.stringify(state._user));
-      updateAuthUI();
-      document.getElementById('authPanel').classList.remove('open');
-      await loadUserSheets();
-      showToast(`Welcome back, ${result.username}!`);
-    } else {
-      errEl.textContent = result.error || 'Login failed';
-      errEl.hidden = false;
-    }
-  } catch (e) {
-    errEl.textContent = 'Connection error';
-    errEl.hidden = false;
+document.getElementById('legacyLinkBtn')?.addEventListener('click', () => { void onLegacyLinkClick(); });
+
+document.addEventListener('keydown', (e) => {
+  if (e.key !== 'Escape') return;
+  if (document.getElementById('authModal')?.classList.contains('open')) {
+    e.preventDefault();
+    closeAuthModal();
   }
-});
-
-document.getElementById('authRegBtn').addEventListener('click', async () => {
-  const username = document.getElementById('authRegUser').value.trim();
-  const password = document.getElementById('authRegPass').value;
-  const errEl = document.getElementById('authRegError');
-  errEl.hidden = true;
-  try {
-    const result = await convex.mutation(api.auth.register, { username, password });
-    if (result.ok) {
-      state._user = { id: result.userId, username: result.username };
-      localStorage.setItem('cs-user', JSON.stringify(state._user));
-      updateAuthUI();
-      document.getElementById('authPanel').classList.remove('open');
-      await loadUserSheets();
-      showToast(`Welcome, ${result.username}!`);
-    } else {
-      errEl.textContent = result.error || 'Registration failed';
-      errEl.hidden = false;
-    }
-  } catch (e) {
-    errEl.textContent = 'Connection error';
-    errEl.hidden = false;
-  }
-});
-
-document.getElementById('authLogoutBtn').addEventListener('click', () => {
-  state._user = null;
-  state._sheetId = null;
-  state._sheetName = null;
-  localStorage.removeItem('cs-user');
-  updateAuthUI();
-  document.getElementById('sheetsBar').hidden = true;
-  showToast('Logged out');
 });
 
 // ── Sheet window functions ───────────────────────────────────────────────────
@@ -534,7 +598,7 @@ document.getElementById('authLogoutBtn').addEventListener('click', () => {
 window.loadSheet = async function(sheetId) {
   if (!sheetId || !state._user) return;
   try {
-    const sheets = await convex.query(api.sheets.list, { userId: state._user.id });
+    const sheets = await convex.query(api.sheets.list, {});
     const sheet = sheets.find(s => s._id === sheetId);
     if (!sheet) return;
     const data = JSON.parse(sheet.data);
@@ -556,7 +620,6 @@ window.createNewSheet = async function() {
   try {
     const data = JSON.stringify(getSheetData(state));
     const sheetId = await convex.mutation(api.sheets.save, {
-      userId: state._user.id,
       name,
       data,
     });
@@ -574,7 +637,6 @@ window.saveCurrentSheet = async function() {
     const data = JSON.stringify(getSheetData(state));
     await convex.mutation(api.sheets.save, {
       sheetId: state._sheetId,
-      userId: state._user.id,
       name: state._sheetName,
       data,
     });
@@ -586,7 +648,7 @@ window.deleteCurrentSheet = async function() {
   if (!state._user || !state._sheetId) return;
   if (!confirm(`Delete "${state._sheetName}"?`)) return;
   try {
-    await convex.mutation(api.sheets.remove, { sheetId: state._sheetId, userId: state._user.id });
+    await convex.mutation(api.sheets.remove, { sheetId: state._sheetId });
     state._sheetId = null;
     state._sheetName = null;
     await loadUserSheets();

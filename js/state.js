@@ -1,12 +1,18 @@
 import { ConvexHttpClient } from "https://esm.sh/convex@1.21.0/browser";
 
 // Run: npx convex dev — then paste your deployment URL here
-const CONVEX_URL = "https://aware-peccary-979.convex.cloud";
+const CONVEX_URL = "https://unique-lobster-957.convex.cloud";
 export const convex = new ConvexHttpClient(CONVEX_URL);
 
 export const api = {
-  auth: { register: "auth:register", login: "auth:login" },
   sheets: { list: "sheets:list", save: "sheets:save", remove: "sheets:remove" },
+  migration: {
+    myAccountLink: "migration:myAccountLink",
+    linkLegacyAccount: "migration:linkLegacyAccount",
+    getUserSetting: "migration:getUserSetting",
+    setUserSetting: "migration:setUserSetting",
+    listUserSettings: "migration:listUserSettings",
+  },
 };
 
 const STORAGE_KEY = 'player-card';
@@ -112,8 +118,8 @@ export const state = {
     highQuality: true,
   },
 
-  // Auth / session (not persisted to localStorage)
-  _user: null,       // { id, username } after login
+  // Auth / session (not persisted to localStorage; Clerk owns the session)
+  _user: null,       // { label } when signed in via neorgon-auth-client
   _sheetId: null,    // current Convex sheet _id
   _sheetName: null,  // current sheet name
 };

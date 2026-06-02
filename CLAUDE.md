@@ -62,17 +62,17 @@ CORS is restricted to `charactersheet.neorgon.com` and localhost ports 8888/8889
 - `render.js` uses a `lastRenderedSection` module-level variable to suppress entrance animation when re-rendering the same section. `lastNavigationDirection` (1 = forward, -1 = backward) drives directional CSS classes (`section-enter-right` / `section-enter-left`).
 - The builder step is not a section index — it's a separate `state.showBuilder` flag. Dot nav clicking sets `state.showBuilder = false` before changing section.
 
-## Auth & Sheets (Convex Backend)
+## Auth & Sheets (Convex + Clerk)
 
-The app now has optional Convex-backed login and multi-sheet storage.
+Optional Convex-backed **multi-sheet** storage with **Clerk** (shared [`neorgon-auth-client`](../neorgon-auth-client/) pattern). JWT template name in Clerk must be `convex` (enable the Clerk → Convex integration in the Clerk dashboard).
 
-**Setup:** Run `npm install && npx convex dev` from the project root, then replace `REPLACE_WITH_YOUR_CONVEX_URL` in `js/state.js` with your deployment URL.
+**Setup:** Run `npm install && npx convex dev` from the project root; set `CONVEX_URL` in `js/state.js`. In Clerk, add allowed origins for `http://localhost:8814` and `https://charactersheet.neorgon.com`. Publishable key lives in `<meta name="clerk-publishable-key">` in `index.html`; auth UI module is vendored at `js/vendor/neorgon-auth.js` (copy from `neorgon-auth-client` when updating).
 
-**Auth flow:** Username/password login (same `simpleHash` pattern as memes-site). Session stored in `localStorage('cs-user')` as `{ id, username }`. The `state._user`, `state._sheetId`, `state._sheetName` fields are session-only (not persisted to `player-card` localStorage key).
+**Auth flow:** Clerk session + `convex.setAuth` with Clerk’s `convex` JWT. Sign-in opens in a **modal** (`#authModal`); backdrop, **Close**, and **Escape** dismiss it; it closes automatically after a successful sign-in. Header button toggles the modal. In Clerk → **User & Authentication**, enable **Email** and **Username** so people can register and sign in with either (placeholders can be tuned via `signInProps` in `events.js`). `state._user` is `{ label }` when signed in (session-only, not in `player-card` localStorage). `state._sheetId` / `state._sheetName` track the active sheet.
 
-**Sheets:** Each user can have multiple named sheets. `convex/sheets.ts` — `list` (query by userId), `save` (upsert), `remove`. The sheets bar appears only when logged in. Loading a sheet merges its data into `state` via `deepMergeIntoState()` in events.js.
+**Sheets:** Rows keyed by `ownerSubject` (JWT `subject`). `convex/sheets.ts` — `list` (authenticated), `save`, `remove`. Sheets bar appears when signed in.
 
-**Convex files:** `convex/schema.ts` (users + sheets tables), `convex/auth.ts` (register/login), `convex/sheets.ts` (CRUD).
+**Convex files:** `convex/schema.ts` (sheets), `convex/auth.config.ts` (Clerk issuer), `convex/sheets.ts` (CRUD).
 
 ## Navigation
 
