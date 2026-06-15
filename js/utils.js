@@ -34,3 +34,11 @@ export function debounce(fn, ms) {
     timer = setTimeout(() => fn(...args), ms);
   };
 }
+
+const _reduceMotion = typeof window !== 'undefined' && window.matchMedia
+  ? window.matchMedia('(prefers-reduced-motion: reduce)')
+  : null;
+
+export function scrollTop() {
+  window.scrollTo({ top: 0, behavior: _reduceMotion && _reduceMotion.matches ? 'auto' : 'smooth' });
+}

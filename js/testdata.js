@@ -1,6 +1,7 @@
 import { state, save } from './state.js';
 import { HOBBY_OPTIONS } from './data.js';
 import { render } from './render.js';
+import { scrollTop } from './utils.js';
 
 const NAMES = [
   'Kira Blackwood', 'Zane Mercer', 'Luna Vex', 'Dax Renegade', 'Nova Sterling',
@@ -268,5 +269,5 @@ export function randomFill() {
 
   save(state);
   render();
-  window.scrollTo({ top: 0, behavior: 'smooth' });
+  scrollTop();
 }

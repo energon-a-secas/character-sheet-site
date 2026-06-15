@@ -6,7 +6,7 @@ import { renderBuilder, getAllHighlightableMedia } from './builder.js';
 import { searchGames, searchAnime, searchAnimeCharacters, searchMovies, searchCities } from './api.js';
 import { generateCard, exportPDF } from './card.js';
 import { downloadPresentation, generatePresentationHTML, generateScript } from './present.js';
-import { debounce, $, showToast } from './utils.js';
+import { debounce, $, showToast, scrollTop } from './utils.js';
 
 const debouncedSearch = debounce(handleSearch, 350);
 
@@ -238,7 +238,7 @@ function onClick(e) {
     state.currentSection = idx;
     save(state);
     render();
-    window.scrollTo({ top: 0, behavior: 'smooth' });
+    scrollTop();
     return;
   }
 
@@ -663,7 +663,7 @@ window.startOver = function() {
   if (!hasData || confirm('Start over? Your answers will be cleared — you can always roll the dice again.')) {
     resetState(state);
     render();
-    window.scrollTo({ top: 0, behavior: 'smooth' });
+    scrollTop();
     showToast('Fresh start!');
   }
 };
@@ -757,7 +757,7 @@ window.nextSection = async function() {
     state.currentSection++;
     save(state);
     render();
-    window.scrollTo({ top: 0, behavior: 'smooth' });
+    scrollTop();
   } else {
     state.showBuilder = true;
     save(state);
@@ -768,7 +768,7 @@ window.nextSection = async function() {
     $('btn-next').textContent = 'Generate my card';
     $('btn-prev').style.visibility = 'visible';
     renderBuilder();
-    window.scrollTo({ top: 0, behavior: 'smooth' });
+    scrollTop();
   }
 };
 
@@ -778,7 +778,7 @@ window.prevSection = function() {
     state.showBuilder = false;
     save(state);
     render();
-    window.scrollTo({ top: 0, behavior: 'smooth' });
+    scrollTop();
     return;
   }
 
@@ -786,7 +786,7 @@ window.prevSection = function() {
     state.currentSection--;
     save(state);
     render();
-    window.scrollTo({ top: 0, behavior: 'smooth' });
+    scrollTop();
   }
 };
 
