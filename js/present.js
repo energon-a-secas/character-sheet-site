@@ -1,4 +1,5 @@
 import { FREE_TIME_OPTIONS, getRPGClass } from './data.js';
+import { getTwoTruths } from './card/model.js';
 import { showToast } from './utils.js';
 
 export function generateScript(s) {
@@ -134,18 +135,20 @@ export function generateScript(s) {
     lines.push('');
     lines.push('*Ask the group to guess which one is false:*');
     lines.push('');
-    // Shuffle order for the script (don't reveal which is the lie)
-    const stmts = [
-      { text: truth1, tag: '' },
-      { text: truth2, tag: '' },
-      { text: lie, tag: '*(this is the lie)*' },
-    ].sort(() => Math.random() - 0.5);
+    // Same seeded order as the card and the deck, so a presenter reading this
+    // script can point at the card. Math.random() here gave a different order on
+    // every copy, and the answer was tagged inline next to the statement — where
+    // anyone glancing at the presenter's screen could read it.
+    const stmts = getTwoTruths(s);
     stmts.forEach((st, i) => {
-      lines.push(`**${String.fromCharCode(65 + i)}.** ${st.text} ${st.tag}`);
+      lines.push(`**${String.fromCharCode(65 + i)}.** ${st.text}`);
     });
     lines.push('');
-    lines.push('*After the group guesses, reveal the lie.*');
-    lines.push('');
+    const answer = stmts.findIndex(st => st.isLie);
+    if (answer >= 0) {
+      lines.push(`<details><summary>Answer (click to reveal)</summary>\n\n**${String.fromCharCode(65 + answer)}** is the lie.\n\n</details>`);
+      lines.push('');
+    }
   }
 
   lines.push('---');
@@ -218,7 +221,7 @@ function buildHTML(s) {
 
   // Slide 3: Two Truths One Lie
   if (hasGame) {
-    slides.push(buildSlide3(truth1, truth2, lie));
+    slides.push(buildSlide3(getTwoTruths(s)));
   }
 
   // Slide 4: Top picks
@@ -256,11 +259,14 @@ ${getJS(slides.length)}
 }
 
 function buildSlide1(name, jobTitle, yearsExp, prevCompany, location, rpgClass) {
-  const jobParts = [jobTitle, yearsExp ? `${yearsExp} yrs` : ''].filter(Boolean);
+  // yearsExperience is free text ("9 years", "since forever") — appending "yrs"
+  // produced "9 years yrs". And the separator is joined *after* escaping, since
+  // esc() would otherwise turn the entity into visible "&middot;".
+  const jobParts = [jobTitle, yearsExp].filter(Boolean).map(esc);
   return `<div class="slide-inner slide-identity">
   <div class="greeting">Hi, I'm</div>
   <div class="big-name">${esc(name)}</div>
-  ${jobParts.length ? `<div class="job-line">${esc(jobParts.join(' &middot; '))}</div>` : ''}
+  ${jobParts.length ? `<div class="job-line">${jobParts.join(' &middot; ')}</div>` : ''}
   ${prevCompany ? `<div class="prev-line">Previously at <strong>${esc(prevCompany)}</strong></div>` : ''}
   ${location ? `<div class="location-line">&#128205; ${esc(location)}</div>` : ''}
   <div class="rpg-badge">${esc(rpgClass)}</div>
@@ -279,20 +285,22 @@ function buildSlide2(name, freeTimeLabel, hobbies) {
 </div>`;
 }
 
-function buildSlide3(truth1, truth2, lie) {
-  // Shuffle the three statements
-  const stmts = [
-    { text: truth1, isLie: false },
-    { text: truth2, isLie: false },
-    { text: lie,    isLie: true  },
-  ].sort(() => Math.random() - 0.5);
-
+/**
+ * `stmts` comes from getTwoTruths — the same seeded shuffle the card uses, so the
+ * deck and the card list the statements in the same order. `Math.random()` here
+ * previously reordered them on every regeneration, which meant the deck and the
+ * card disagreed and re-downloading changed the answer's position.
+ *
+ * The lie is marked with `data-lie` rather than being recoverable from the
+ * onclick string, which is what revealAll() used to parse.
+ */
+function buildSlide3(stmts) {
   return `<div class="slide-inner slide-game">
   <div class="game-title">Two Truths, One Lie</div>
   <div class="game-sub">Can you guess which one is false?</div>
   <div class="game-cards" id="game-cards">
     ${stmts.map((s, i) => `
-    <div class="game-card" id="gc-${i}" onclick="guess(${i}, ${s.isLie})">
+    <div class="game-card" id="gc-${i}" data-lie="${s.isLie ? '1' : '0'}" onclick="guess(${i})">
       <div class="gc-letter">${String.fromCharCode(65 + i)}</div>
       <div class="gc-text">${esc(s.text)}</div>
       <div class="gc-reveal" id="gcr-${i}"></div>
@@ -710,14 +718,15 @@ function goTo(idx) {
   document.querySelectorAll('.dot').forEach((d, i) => d.classList.toggle('active', i === current));
 }
 
-function guess(idx, isLie) {
+function guess(idx) {
   if (revealed) return;
   document.querySelectorAll('.game-card').forEach(c => c.classList.remove('voted'));
-  document.getElementById('gc-' + idx).classList.add('voted');
+  const card = document.getElementById('gc-' + idx);
+  card.classList.add('voted');
   voted = true;
 
   const hint = document.getElementById('game-hint');
-  hint.textContent = isLie ? '🎯 You guessed it — reveal to confirm!' : '🤔 Hmm... are you sure? Reveal to find out!';
+  hint.textContent = card.dataset.lie === '1' ? '🎯 You guessed it — reveal to confirm!' : '🤔 Hmm... are you sure? Reveal to find out!';
   document.getElementById('reveal-btn').style.display = 'inline-flex';
 }
 
@@ -728,7 +737,7 @@ function revealAll() {
 
   const cards = document.querySelectorAll('.game-card');
   cards.forEach((card, i) => {
-    const isLie = card.getAttribute('onclick').includes('true');
+    const isLie = card.dataset.lie === '1';
     const revealEl = document.getElementById('gcr-' + i);
     if (isLie) {
       card.classList.add('is-lie');
@@ -743,7 +752,7 @@ function revealAll() {
 
   const votedCard = document.querySelector('.game-card.voted');
   if (votedCard) {
-    const wasLie = votedCard.getAttribute('onclick').includes('true');
+    const wasLie = votedCard.dataset.lie === '1';
     document.getElementById('game-hint').textContent = wasLie ? '🎉 You got it! The lie has been revealed.' : '😈 Fooled! Now you know the truth.';
   } else {
     document.getElementById('game-hint').textContent = 'The lie has been revealed!';

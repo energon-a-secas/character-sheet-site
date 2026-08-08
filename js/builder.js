@@ -1,89 +1,14 @@
 import { state, save } from './state.js';
 import { getRPGClass } from './data.js';
 import { escHtml, $ } from './utils.js';
-import { CARD_THEMES, CARD_LAYOUTS } from './themes.js';
 import { calculateCompletionStats, getPersonalityInsights } from './stats.js';
 import { IconPerson, IconAnime, IconGame, IconMovie } from './icons.js';
-
-export function getAllAvatarOptions(s) {
-  const options = [];
-
-  if (s.anime.favoriteCharacterData) {
-    options.push({
-      id: 'anime-char-fav',
-      label: s.anime.favoriteCharacterData.name,
-      image: s.anime.favoriteCharacterData.imageLarge || s.anime.favoriteCharacterData.image,
-      type: 'character',
-    });
-  }
-
-  if (s.anime.waifuHusbandoData && !s.anime.waifuHusbandoSkip) {
-    options.push({
-      id: 'anime-char-waifu',
-      label: s.anime.waifuHusbandoData.name,
-      image: s.anime.waifuHusbandoData.imageLarge || s.anime.waifuHusbandoData.image,
-      type: 'character',
-    });
-  }
-
-  s.anime.topAnime.forEach((a, i) => {
-    if (a.imageLarge || a.image) {
-      options.push({ id: `anime-${i}`, label: a.name, image: a.imageLarge || a.image, type: 'anime' });
-    }
-  });
-
-  s.gaming.topGames.forEach((g, i) => {
-    if (g.image) {
-      options.push({ id: `game-${i}`, label: g.name, image: g.image, type: 'game' });
-    }
-  });
-
-  if (s.gaming.replayGame && s.gaming.replayGame.image) {
-    options.push({ id: 'game-replay', label: s.gaming.replayGame.name, image: s.gaming.replayGame.image, type: 'game' });
-  }
-
-  s.movies.topMovies.forEach((m, i) => {
-    if (m.image) {
-      options.push({ id: `movie-${i}`, label: m.name, image: m.image, type: 'movie' });
-    }
-  });
-
-  if (s.movies.comfortRewatch && s.movies.comfortRewatch.image) {
-    options.push({ id: 'movie-comfort', label: s.movies.comfortRewatch.name, image: s.movies.comfortRewatch.image, type: 'movie' });
-  }
-
-  return options;
-}
-
-export function getAllHighlightableMedia(s) {
-  const media = [];
-
-  s.gaming.topGames.forEach((g, i) => {
-    media.push({ id: `game-${i}`, name: g.name, image: g.image, type: 'game' });
-  });
-  if (s.gaming.replayGame) {
-    media.push({ id: 'game-replay', name: s.gaming.replayGame.name, image: s.gaming.replayGame.image, type: 'game' });
-  }
-  s.anime.topAnime.forEach((a, i) => {
-    media.push({ id: `anime-${i}`, name: a.name, image: a.image || a.imageLarge, type: 'anime' });
-  });
-  if (s.anime.comfortRewatch) {
-    media.push({ id: 'anime-comfort', name: s.anime.comfortRewatch.name, image: s.anime.comfortRewatch.image, type: 'anime' });
-  }
-  s.movies.topMovies.forEach((m, i) => {
-    media.push({ id: `movie-${i}`, name: m.name, image: m.image, type: 'movie' });
-  });
-  if (s.movies.comfortRewatch) {
-    media.push({ id: 'movie-comfort', name: s.movies.comfortRewatch.name, image: s.movies.comfortRewatch.image, type: 'movie' });
-  }
-
-  return media.filter(m => m.image);
-}
+import { getAvatarOptions, getMediaOptions } from './card/media.js';
 
 export function renderBuilder() {
   const container = $('section-container');
-  const avatars = getAllAvatarOptions(state);
-  const media = getAllHighlightableMedia(state);
+  const avatars = getAvatarOptions(state);
+  const media = getMediaOptions(state);
   const cfg = state.cardConfig;
   const rpgClass = getRPGClass(state);
   const stats = calculateCompletionStats();
@@ -149,36 +74,8 @@ export function renderBuilder() {
     </div>
 
     <div class="field-group">
-      <label class="field-label">Card Theme</label>
-      <div class="field-hint">Choose your visual style</div>
-      <div class="theme-grid">
-        ${Object.values(CARD_THEMES).map(t => `
-          <button class="theme-option${cfg.theme === t.id ? ' selected' : ''}" data-theme="${t.id}" style="--theme-accent: ${t.accent}; --theme-bg: ${t.bg[0]}">
-            <div class="theme-preview" style="background: linear-gradient(135deg, ${t.bg[0]}, ${t.bg[1]}); border-color: ${t.border}">
-              <div class="theme-preview-text" style="color: ${t.textPrimary}">${t.name.charAt(0)}</div>
-            </div>
-            <div class="theme-option-name">${escHtml(t.name)}</div>
-          </button>`).join('')}
-      </div>
-    </div>
-
-    <div class="field-group">
-      <label class="field-label">Card Layout</label>
-      <div class="field-hint">Choose your card dimensions</div>
-      <div class="layout-grid">
-        ${Object.values(CARD_LAYOUTS).map(l => `
-          <button class="layout-option${cfg.layout === l.id ? ' selected' : ''}" data-layout="${l.id}">
-            <div class="layout-preview ${l.id}">
-              <div class="layout-preview-box"></div>
-            </div>
-            <div class="layout-option-name">${escHtml(l.name)}</div>
-            <div class="layout-option-desc">${escHtml(l.description)}</div>
-          </button>`).join('')}
-      </div>
-    </div>
-
-    <div class="field-group">
       <label class="field-label">Options</label>
+      <div class="field-hint">Theme, size and export scale are chosen on the next screen, with the card in front of you.</div>
       <div class="builder-toggles">
         <label class="builder-toggle">
           <input type="checkbox" data-builder-opt="showSocials" ${cfg.showSocials ? 'checked' : ''}>
@@ -187,10 +84,6 @@ export function renderBuilder() {
         <label class="builder-toggle">
           <input type="checkbox" data-builder-opt="showCollection" ${cfg.showCollection ? 'checked' : ''}>
           <span>Show favorite media</span>
-        </label>
-        <label class="builder-toggle">
-          <input type="checkbox" data-builder-opt="highQuality" ${cfg.highQuality ? 'checked' : ''}>
-          <span>High quality export (larger file size)</span>
         </label>
       </div>
     </div>
@@ -202,16 +95,6 @@ export function renderBuilder() {
   </div>`;
 
   container.innerHTML = html;
-}
-
-export function getSelectedAvatar() {
-  const avatars = getAllAvatarOptions(state);
-  return avatars.find(a => a.id === state.cardConfig.avatarId) || avatars[0] || null;
-}
-
-export function getHighlightedMedia() {
-  const all = getAllHighlightableMedia(state);
-  return all.filter(m => state.cardConfig.highlightedMedia.includes(m.id));
 }
 
 function renderStatsPanel(stats, insights) {

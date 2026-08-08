@@ -95,7 +95,11 @@ export const RPG_CLASSES = {
 
 function countGaming(s) {
   let c = 0;
-  if (s.gaming.consoles.length) c += s.gaming.consoles.length;
+  // Consoles are a checkbox row — one click each, and owning four of them says far
+  // less than naming four favourite games. Counting them 1:1 made "tick every
+  // console" the cheapest route to Pixel Paladin, while anime and movies needed
+  // real searched titles. Capped so breadth of platforms counts once.
+  if (s.gaming.consoles.length) c += Math.min(s.gaming.consoles.length, 2);
   if (s.gaming.topGames.length) c += s.gaming.topGames.length;
   if (s.gaming.replayGame) c++;
   if (s.gaming.favoriteCharacter) c++;
@@ -123,16 +127,13 @@ function countWildcards(s) {
   return Object.values(s.wildcards).filter(w => w.value && !w.skip).length;
 }
 
+/**
+ * First matching class wins, so RPG_CLASSES is ordered most specific first and
+ * 'Balanced Adventurer' matches unconditionally last.
+ */
 export function getRPGClass(s) {
-  // Calculate scores for each class
-  const scores = [];
-  for (const [name, def] of Object.entries(RPG_CLASSES)) {
-    if (def.match(s)) {
-      scores.push(name);
-      break; // Return first match
-    }
-  }
-  return scores[0] || 'Balanced Adventurer';
+  const hit = Object.entries(RPG_CLASSES).find(([, def]) => def.match(s));
+  return hit ? hit[0] : 'Balanced Adventurer';
 }
 
 export function getSectionFill(s, key) {

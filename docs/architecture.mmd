@@ -19,19 +19,56 @@ config:
 ---
 
 flowchart TB
-    User([User]) --> HTML["index.html\nApp shell"]
+    User([User]) --> HTML["index.html\nInterview + card modal"]
+    Reader([Someone with a link]) --> CardPage["card.html\nRead-only shared card"]
+    Team([A team]) --> PartyPage["party.html\nParty board"]
 
-    subgraph App["ES Modules"]
+    subgraph App["App shell"]
         HTML --> app["app.js\nEntry point"]
-        app --> state["state.js\nInterview answers"]
-        app --> data["data.js\nQuestions + RPG class definitions"]
-        app --> builder["builder.js\nWizard flow logic"]
-        app --> card["card.js\nCanvas character card renderer"]
-        app --> api["api.js\nAnime / movie search"]
-        app --> render["render.js\nDOM templates"]
-        app --> events["events.js\nWizard navigation"]
-        app --> utils["utils.js\nHelpers"]
+        app --> state["state.js\nLive sheet + Convex"]
+        state --> sheet["sheet.js\nThe sheet's shape"]
+        app --> data["data.js\nSections + RPG classes"]
+        app --> render["render.js\nSection rendering"]
+        app --> events["events.js\nDelegated routing"]
+        events --> builder["builder.js\nAvatar + media picks"]
+        events --> present["present.js\nDeck + presenter script"]
     end
 
-    api -->|"search queries"| External["External API\nAnime / movie data"]
-    card --> Canvas["Canvas API\nCharacter card image export"]
+    subgraph Card["js/card/ — DOM + CSS, not canvas"]
+        panel["panel.js\nThe card modal"] --> model["model.js\nSheet → ranked blocks"]
+        panel --> presets["presets.js\n7 themes · 5 layouts, as data"]
+        model --> cardrender["render.js\nBlocks → DOM + measured fit"]
+        presets --> cardrender
+        cardrender --> export["export.js"]
+    end
+
+    subgraph Share["js/share/"]
+        link["link.js\ngzip + base64url\nanswer stripped at the encoder"]
+        qr["qr.js\nQR generated locally"]
+    end
+
+    events --> panel
+    panel --> link
+    panel --> qr
+
+    export -->|"SVG foreignObject → 1× / 2× / 3×"| PNG["PNG"]
+    export -->|"@media print"| PDF["Vector PDF\nselectable text"]
+
+    link -.->|"#s= fragment\nnever sent to a server"| CardPage
+    CardPage --> reader["reader.js"]
+    reader --> model
+    reader --> cardrender
+
+    link -.->|"#r= fragment\none gzip window"| PartyPage
+    PartyPage --> party["party.js"]
+    party --> analyze["party/analyze.js\noverlap · common ground\ncomposition · prompts"]
+    party --> sheet
+    analyze --> sheet
+
+    app --> api["api.js"]
+    api -->|"search"| Worker["Cloudflare Worker\nkeys stay server-side"]
+    Worker --> RAWG["RAWG"]
+    Worker --> Jikan["Jikan"]
+    Worker --> TMDB["TMDB"]
+
+    state -.->|"optional, Clerk-authed"| Convex["Convex\nmulti-sheet storage"]

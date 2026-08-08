@@ -5,8 +5,8 @@ const TMDB_IMG = 'https://image.tmdb.org/t/p/w185';
 
 const ALLOWED_ORIGINS = [
   'https://charactersheet.neorgon.com',
-  'http://localhost:8889',
-  'http://localhost:8888',
+  'http://localhost:8814',
+  'http://127.0.0.1:8814',
 ];
 
 function corsHeaders(request) {

@@ -2,9 +2,13 @@ import { state, save, resetState, convex, api, deepMerge } from './state.js';
 import { getComment, showComment, clearComment } from './comments.js';
 import { SECTIONS } from './data.js';
 import { render, renderSection, renderProgressBar, renderNav, renderMediaShelf, renderSectionDots } from './render.js';
-import { renderBuilder, getAllHighlightableMedia } from './builder.js';
+import { renderBuilder } from './builder.js';
+import { getMediaOptions } from './card/media.js';
 import { searchGames, searchAnime, searchAnimeCharacters, searchMovies, searchCities } from './api.js';
-import { generateCard, exportPDF } from './card.js';
+import {
+  openCardPanel, drawCard, handleCardControl,
+  exportPng, exportCopy, exportShare, exportPdf, copyShareLink, openShareLink,
+} from './card/panel.js';
 import { downloadPresentation, generatePresentationHTML, generateScript } from './present.js';
 import { debounce, $, showToast, scrollTop } from './utils.js';
 
@@ -189,7 +193,7 @@ function onClick(e) {
   }
 
   if (el.dataset.selectMedia) {
-    const all = getAllHighlightableMedia(state);
+    const all = getMediaOptions(state);
     const allSelected = state.cardConfig.highlightedMedia.length === all.length;
     state.cardConfig.highlightedMedia = allSelected ? [] : all.map(m => m.id);
     save(state);
@@ -213,19 +217,13 @@ function onClick(e) {
     return;
   }
 
-  if (el.dataset.theme || el.closest('[data-theme]')) {
-    const opt = el.closest('[data-theme]') || el;
-    state.cardConfig.theme = opt.dataset.theme;
-    save(state);
-    renderBuilder();
-    return;
-  }
+  // Theme / size / scale chips in the card modal. Namespaced `data-card-*`: a bare
+  // `data-theme` selector matched <html data-theme="…">, which the header's visitor
+  // theme sets, so any unhandled click reassigned the card theme.
+  if (handleCardControl(el)) return;
 
-  if (el.dataset.layout || el.closest('[data-layout]')) {
-    const opt = el.closest('[data-layout]') || el;
-    state.cardConfig.layout = opt.dataset.layout;
-    save(state);
-    renderBuilder();
+  if (el.closest('[data-card-action]')) {
+    onCardAction(el.closest('[data-card-action]').dataset.cardAction);
     return;
   }
 
@@ -669,6 +667,10 @@ window.startOver = function() {
 };
 
 function spawnConfetti() {
+  // 60 elements animating across the viewport is exactly what this query is for.
+  // CSS alone cannot suppress it: the animation is the element's reason to exist.
+  if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+
   const container = document.createElement('div');
   container.className = 'confetti-container';
   document.body.appendChild(container);
@@ -744,9 +746,8 @@ function populateIntroIframe() {
 
 window.nextSection = async function() {
   if (state.showBuilder) {
-    $('card-modal').classList.add('open');
     populateIntroIframe();
-    await generateCard(state);
+    await openCardPanel();
     spawnConfetti();
     playRevealSound();
     return;
@@ -794,23 +795,17 @@ window.closeCardModal = function() {
   $('card-modal').classList.remove('open');
 };
 
-window.downloadCard = function() {
-  const canvas = $('card-canvas');
-  try {
-    const link = document.createElement('a');
-    const name = state.identity.name || 'character';
-    link.download = `${name.toLowerCase().replace(/\s+/g, '-')}-card.png`;
-    link.href = canvas.toDataURL('image/png');
-    link.click();
-    showToast('Your card is ready!');
-  } catch {
-    showToast('Cannot export: images blocked by CORS');
+function onCardAction(action) {
+  switch (action) {
+    case 'png': exportPng(); break;
+    case 'copy': exportCopy(); break;
+    case 'share': exportShare(); break;
+    case 'pdf': exportPdf(); break;
+    case 'script': window.copyScript(); break;
+    case 'copy-link': copyShareLink(); break;
+    case 'open-link': openShareLink(); break;
   }
-};
-
-window.downloadPDF = function() {
-  exportPDF(state);
-};
+}
 
 window.generatePresentation = function() {
   downloadPresentation(state);

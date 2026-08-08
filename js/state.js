@@ -1,4 +1,9 @@
 import { ConvexHttpClient } from "https://esm.sh/convex@1.21.0/browser";
+// The sheet shape lives in sheet.js so the read-only card page can import it
+// without loading a Convex client it never uses.
+import { blankSheet, hydrateSheet, deepMerge } from './sheet.js';
+
+export { blankSheet, hydrateSheet, deepMerge };
 
 // Run: npx convex dev — then paste your deployment URL here
 const CONVEX_URL = "https://unique-lobster-957.convex.cloud";
@@ -17,112 +22,8 @@ export const api = {
 
 const STORAGE_KEY = 'player-card';
 
-export const state = {
-  currentSection: 0,
+export const state = blankSheet();
 
-  identity: {
-    name: '',
-    handles: [],
-    country: '',
-    city: '',
-    timezone: '',
-    bestTimeToPresent: '',
-    description: '',
-  },
-
-  gaming: {
-    consoles: [],
-    topGames: [],
-    replayGame: null,
-    favoriteCharacter: '',
-    worstGame: '',
-  },
-
-  anime: {
-    watches: null,
-    topAnime: [],
-    genres: [],
-    favoriteFromGenre: '',
-    favoriteCharacterData: null,
-    waifuHusbandoData: null,
-    waifuHusbandoSkip: '',
-    subDub: '',
-    comfortRewatch: null,
-    worstAnime: '',
-  },
-
-  movies: {
-    topMovies: [],
-    genres: [],
-    favoriteFromGenre: '',
-    starWars: null,
-    starWarsTrilogy: '',
-    starWarsSide: '',
-    marvel: null,
-    marvelHero: '',
-    dc: null,
-    dcHero: '',
-    comfortRewatch: null,
-    favoriteQuote: '',
-    favoriteQuoteSource: '',
-    worstMovie: '',
-  },
-
-  hobbies: {
-    selected: [],
-    custom: '',
-    creative: '',
-  },
-
-  wildcards: {
-    weirdThing: { value: '', skip: '' },
-    lifeHack: { value: '', skip: '' },
-    hillToDieOn: { value: '', skip: '' },
-    guiltyPleasure: { value: '', skip: '' },
-    threeApps: { value: '', skip: '' },
-    breakfastSTier: { value: '', skip: '' },
-  },
-
-  extras: {
-    memeLink: '',
-    memeNote: '',
-  },
-
-  intro: {
-    // Career
-    jobTitle: '',
-    yearsExperience: '',
-    prevCompany: '',
-    city: '',
-    careerHighlight: '',
-    // Personal
-    motto: '',
-    unknownFact: '',
-    currentlyLearning: '',
-    // Fun Facts
-    freeTimeChoice: '',
-    freeTimeCustom: '',
-    truth1: '',
-    truth2: '',
-    lie: '',
-  },
-
-  showBuilder: false,
-  cardConfig: {
-    avatarId: '',
-    highlightedMedia: [],
-    showSocials: true,
-    showCollection: true,
-    theme: 'default',
-    layout: 'vertical',
-    highQuality: true,
-  },
-
-  // Auth / session (not persisted to localStorage; Clerk owns the session)
-  _user: null,       // { label } when signed in via neorgon-auth-client
-  _sheetId: null,    // current Convex sheet _id
-  _sheetName: null,  // current sheet name
-};
 
 export function loadSaved(s) {
   try {
@@ -143,35 +44,14 @@ export function save(s) {
 }
 
 export function resetState(s) {
-  s.currentSection = 0;
-  s.identity = { name: '', handles: [], description: '', country: '', bestTimeToPresent: '' };
-  s.gaming = { consoles: [], topGames: [], replayGame: null, favoriteCharacter: '' };
-  s.anime = { watches: null, topAnime: [], genres: [], favoriteFromGenre: '', favoriteCharacterData: null, waifuHusbandoData: null, waifuHusbandoSkip: '', subDub: '', comfortRewatch: null };
-  s.movies = { topMovies: [], genres: [], favoriteFromGenre: '', starWars: null, starWarsTrilogy: '', starWarsSide: '', marvel: null, marvelHero: '', dc: null, dcHero: '', comfortRewatch: null, favoriteQuote: '', favoriteQuoteSource: '' };
-  s.hobbies = { selected: [], custom: '', creative: '' };
-  s.wildcards = {
-    weirdThing: { value: '', skip: '' }, lifeHack: { value: '', skip: '' },
-    hillToDieOn: { value: '', skip: '' }, guiltyPleasure: { value: '', skip: '' },
-    threeApps: { value: '', skip: '' }, breakfastSTier: { value: '', skip: '' },
-  };
-  s.extras = { memeLink: '', memeNote: '' };
-  s.intro = {
-    jobTitle: '', yearsExperience: '', prevCompany: '', city: '',
-    careerHighlight: '', motto: '', unknownFact: '', currentlyLearning: '',
-    freeTimeChoice: '', freeTimeCustom: '', truth1: '', truth2: '', lie: '',
-  };
-  s.showBuilder = false;
-  s.cardConfig = { avatarId: '', highlightedMedia: [], showSocials: true, showCollection: true, theme: 'default', layout: 'vertical', highQuality: true };
-  // _user, _sheetId, _sheetName are intentionally NOT reset (session survives startOver)
+  // Rebuilt from blankSheet() so a field added to the sheet is cleared here for
+  // free. _user / _sheetId / _sheetName are deliberately preserved: the Clerk
+  // session and the active sheet survive "start over".
+  const fresh = blankSheet();
+  delete fresh._user;
+  delete fresh._sheetId;
+  delete fresh._sheetName;
+  Object.assign(s, fresh);
   localStorage.removeItem(STORAGE_KEY);
 }
 
-export function deepMerge(target, source) {
-  for (const key of Object.keys(source)) {
-    if (source[key] && typeof source[key] === 'object' && !Array.isArray(source[key]) && target[key] && typeof target[key] === 'object') {
-      deepMerge(target[key], source[key]);
-    } else {
-      target[key] = source[key];
-    }
-  }
-}

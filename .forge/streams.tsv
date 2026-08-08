@@ -1,0 +1,4 @@
+card-renderer	done	2026-08-08 11:47	Canvas replaced with DOM+CSS. 7 themes as --c-* token sets, 5 layout presets, priority-ranked blocks with measured fit-and-drop. Verified by fit-check across 35 theme×layout combos.
+export-paths	done	2026-08-08 11:47	PNG 1x/2x/3x via SVG foreignObject (real re-render, not upscale), vector PDF via @media print. NOT done: Slack-mrkdwn copy in present.js — the party summary emits mrkdwn but the single-card path does not.
+share-link	done	2026-08-08 11:47	card.html#s= gzip+base64url fragment, answers stripped at the encoder, local QR with a density cap. Extended to rosters (#r=) for the party board.
+defects	done	2026-08-08 11:47	All eight fixed, plus seven more found while wiring (CSP frame-src blob:, print-root leak, duplicate #export-card id, unseeded shuffle in deck+script, entity double-escape, and three party-board defects).
