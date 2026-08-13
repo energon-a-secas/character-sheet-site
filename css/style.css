@@ -15,7 +15,7 @@ html { height: 100%; }
   --text-muted: rgba(255,255,255,.55);
   --accent: #0063e5;
   --accent-bright: #0080ff;
-  --font: 'Avenir Next', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  --font: 'Avenir Next', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
   --text-xs: 0.75rem; --text-sm: 0.875rem; --text-base: 1rem;
   --text-lg: 1.125rem; --text-xl: 1.25rem; --text-2xl: 1.5rem;
   --space-1: 4px; --space-2: 8px; --space-3: 12px; --space-4: 16px;
@@ -106,28 +106,6 @@ main, header { position: relative; z-index: 1; }
 .auth-toggle.logged-in svg circle:nth-of-type(2) {
   fill: currentColor;
   stroke: none;
-}
-
-.info-footer {
-  text-align: center;
-  padding: 20px var(--space-6) 28px;
-  color: var(--text-muted);
-  font-size: .78em;
-  line-height: 1.8;
-  border-top: 1px solid var(--border-subtle);
-  margin-top: 48px;
-  position: relative;
-  z-index: 1;
-}
-.footer-link {
-  color: var(--text-muted);
-  text-decoration: none;
-  transition: color var(--dur);
-}
-.footer-link:hover,
-.footer-link:focus-visible {
-  color: var(--text-secondary);
-  text-decoration: underline;
 }
 
 /* ── Layout ────────────────────────────────────────────────── */
