@@ -1,5 +1,5 @@
 import { state, save } from './state.js';
-import { HOBBY_OPTIONS } from './data.js';
+import { HOBBY_OPTIONS, GOLD_SAINTS, DB_FORMS, TF_FACTIONS } from './data.js';
 import { render } from './render.js';
 import { scrollTop } from './utils.js';
 
@@ -17,6 +17,32 @@ const DESCRIPTIONS = [
 ];
 
 const COUNTRIES = ['Chile', 'Germany', 'Japan', 'Brazil', 'Spain', 'Remote (no fixed HQ)', ''];
+
+const FIRST_MACHINES = [
+  'Family Game (the one with 9999 games)', 'Sega Genesis', 'Game Boy Color',
+  'A beige 486 with Encarta', 'PlayStation 1, borrowed', 'Atari 2600', 'Commodore 64',
+];
+
+const OPENING_THEMES = [
+  'Cha-La Head-Cha-La', 'Pegasus Fantasy', 'A Cruel Angel\'s Thesis',
+  'Tank! (Cowboy Bebop)', 'The Transformers theme', 'Go! Go! Power Rangers',
+];
+
+const SATURDAY_HEROES = [
+  'He-Man', 'Sailor Moon', 'El Chapulín Colorado', 'Optimus Prime',
+  'Goku', 'Kamen Rider', 'Captain Planet', 'Seiya',
+];
+
+const ARCADE_GAMES = [
+  'Metal Slug 3', 'Street Fighter II', 'Marvel vs Capcom 2',
+  'The Simpsons Arcade Game', 'Time Crisis', 'Daytona USA', 'Tekken 3',
+];
+
+const MEETING_CHAMPIONS = [
+  'Optimus Prime, obviously', 'Vegeta (he would not tolerate this)',
+  'Shaka of Virgo — silent and devastating', 'Batman', 'Mazinger Z',
+  'Whoever is closest to the mute button',
+];
 
 const BEST_TIME_PRESENT = [
   'When my coffee kicks in (UTC-3)',
@@ -262,8 +288,24 @@ export function randomFill() {
   state.intro.truth2 = shuffledTruths[1];
   state.intro.lie = pick(LIES_POOL);
 
-  state.extras.memeLink = '';
-  state.extras.memeNote = '';
+  // Legends. The Optimus Prime option is weighted in deliberately — it is the
+  // one answer whose card rendering differs, so a random fill should hit it.
+  state.legends.retroDepth = pick(['grew-up', 'grew-up', 'reruns', 'late', 'lost']);
+  state.legends.goldSaintMode = pick(['', '', '', 'zodiac', 'lost']);
+  state.legends.goldSaint = pick(GOLD_SAINTS).id;
+  state.legends.gundam = pick(['rx78', 'wing', 'nu', 'unicorn', 'exia', 'freedom', 'barbatos', 'optimus', 'optimus']);
+  state.legends.dbForm = pick(DB_FORMS).id;
+  state.legends.tfFaction = pick(TF_FACTIONS).id;
+  state.legends.firstMachine = pick(FIRST_MACHINES);
+  state.legends.openingTheme = pick(OPENING_THEMES);
+  state.legends.saturdayHero = pick(SATURDAY_HEROES);
+  state.legends.arcadeGame = pick(ARCADE_GAMES);
+  state.legends.meetingChampion = pick(MEETING_CHAMPIONS);
+
+  state.extras.memes = [
+    { url: pick(['', 'https://youtu.be/dQw4w9WgXcQ', 'https://i.imgur.com/example.jpg']), note: pick(['', 'The one that explains my whole week.']) },
+    { url: '', note: '' },
+  ];
 
   state.cardConfig = { avatarId: '', highlightedMedia: [], showSocials: true, showCollection: true };
 

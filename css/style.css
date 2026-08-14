@@ -31,6 +31,7 @@ html { height: 100%; }
   --glow-hobbies: #2dd4bf;
   --glow-wildcards: #a78bfa;
   --glow-extras: #fb923c;
+  --glow-legends: #d4af37;
   --glow-identity: #818cf8;
   --glow-intro: #22d3ee;
   --section-glow: var(--glow-identity);
@@ -606,6 +607,7 @@ textarea.field-input {
 /* ── Quick choice (sub/dub, etc.) ──────────────────────────── */
 .quick-choice {
   display: flex;
+  flex-wrap: wrap;
   gap: var(--space-2);
 }
 
@@ -2299,3 +2301,148 @@ body {
   line-height: 1.5;
 }
 
+
+/* ── Legends: Gold Saints ──────────────────────────────────── */
+.saint-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(112px, 1fr));
+  gap: var(--space-2);
+}
+
+.saint-chip {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  padding: var(--space-3) var(--space-2);
+  background: var(--surface-1);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  color: var(--text-secondary);
+  font-family: var(--font);
+  cursor: pointer;
+  text-align: center;
+  transition: all var(--dur) ease;
+}
+
+.saint-chip:hover { border-color: var(--section-glow); }
+
+.saint-chip.active {
+  border-color: var(--section-glow);
+  background: color-mix(in srgb, var(--section-glow) 15%, transparent);
+  color: var(--text-primary);
+}
+
+.saint-symbol {
+  font-size: var(--text-xl);
+  line-height: 1;
+  color: var(--section-glow);
+}
+
+.saint-name { font-size: var(--text-sm); font-weight: 600; }
+.saint-sub  { font-size: 0.72rem; color: var(--text-muted); }
+
+.saint-reveal {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  margin-top: var(--space-3);
+  padding: var(--space-3);
+  border: 1px solid color-mix(in srgb, var(--section-glow) 40%, var(--border));
+  border-radius: var(--radius);
+  background: color-mix(in srgb, var(--section-glow) 8%, transparent);
+}
+
+.saint-reveal-symbol {
+  font-size: var(--text-2xl);
+  color: var(--section-glow);
+  line-height: 1;
+}
+
+.saint-reveal strong { color: var(--text-primary); }
+.saint-lost { margin-top: var(--space-2); }
+
+/* ── Legends: Gundams ──────────────────────────────────────── */
+.gundam-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+  gap: var(--space-2);
+}
+
+.gundam-chip {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 2px;
+  padding: var(--space-3);
+  background: var(--surface-1);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  color: var(--text-secondary);
+  font-family: var(--font);
+  cursor: pointer;
+  text-align: left;
+  transition: all var(--dur) ease;
+}
+
+.gundam-chip:hover { border-color: var(--section-glow); }
+
+.gundam-chip.active {
+  border-color: var(--section-glow);
+  background: color-mix(in srgb, var(--section-glow) 15%, transparent);
+  color: var(--text-primary);
+}
+
+.gundam-name { font-size: var(--text-sm); font-weight: 600; }
+.gundam-from { font-size: 0.72rem; color: var(--text-muted); }
+
+/* The impostor is styled no differently until picked — spotting it is the game,
+   and a dashed border would answer the question before it was asked. */
+.gundam-chip--impostor.active {
+  border-style: dashed;
+}
+
+/* ── Extras: meme previews ─────────────────────────────────── */
+.meme-slot + .meme-slot { margin-top: var(--space-6); }
+
+.meme-preview-slot:empty { display: none; }
+
+.meme-preview {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  margin-top: var(--space-2);
+  padding: var(--space-2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--surface-1);
+  font-size: var(--text-sm);
+  color: var(--text-muted);
+}
+
+.meme-thumb {
+  width: 128px;
+  height: 72px;
+  object-fit: cover;
+  border-radius: var(--radius-sm);
+  background: var(--surface-2);
+  flex-shrink: 0;
+}
+
+.meme-kind {
+  font-size: 0.72rem;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--section-glow);
+}
+
+.meme-host { color: var(--text-secondary); }
+
+.meme-preview--empty { border-style: dashed; }
+
+/* Swapped in by the img's onerror: a dead thumbnail should say so rather than
+   leave a broken-image glyph next to a confident "Image" label. */
+.meme-broken-note { display: none; }
+.meme-preview--broken .meme-thumb,
+.meme-preview--broken .meme-kind { display: none; }
+.meme-preview--broken .meme-broken-note { display: inline; }

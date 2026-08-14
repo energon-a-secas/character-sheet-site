@@ -44,7 +44,21 @@ export const SHEET = {
     guiltyPleasure: { value: '', skip: '' },
     threeApps: { value: '', skip: '' },
   },
-  extras: { memeLink: 'https://example.com/meme', memeNote: 'The "this is fine" dog, weekly.' },
+  legends: {
+    retroDepth: 'grew-up',
+    goldSaint: 'aquarius', goldSaintMode: '',
+    gundam: 'optimus',
+    dbForm: 'krillin', tfFaction: 'decepticon',
+    firstMachine: 'Family Game with 9999 games',
+    openingTheme: 'Pegasus Fantasy, in Latin Spanish',
+    saturdayHero: 'El Chapulín Colorado',
+    arcadeGame: 'Metal Slug 3',
+    meetingChampion: 'Shaka of Virgo — silent and devastating',
+  },
+  // Deliberately left in the *pre-migration* shape. This is the only fixture that
+  // exercises js/sheet.js → migrateSheet, and the checks below assert the meme
+  // survives into the card. Do not "modernise" it to `memes: [...]`.
+  extras: { memeLink: 'https://youtu.be/dQw4w9WgXcQ', memeNote: 'The "this is fine" dog, weekly.' },
   cardConfig: {
     avatarId: '', highlightedMedia: [], showSocials: true, showCollection: true,
     theme: 'default', layout: 'vertical', highQuality: true,

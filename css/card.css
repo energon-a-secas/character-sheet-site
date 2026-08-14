@@ -313,6 +313,15 @@
 /* ── Link / meme ─────────────────────────────────────────────────────────── */
 
 .cc-link-value { color: var(--c-text-2); font-size: 13.5px; }
+.cc-link-thumb {
+  display: block;
+  width: 100%;
+  max-height: 96px;
+  object-fit: cover;
+  border-radius: 6px;
+  margin: 5px 0;
+  border: 1px solid var(--c-border);
+}
 .cc-link-url {
   margin-top: 3px;
   color: var(--c-muted);

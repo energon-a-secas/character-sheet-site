@@ -108,6 +108,20 @@ verified it against ISO/IEC 18004 plus two independent decoders.
 
 - `2026-08-08 11:47` stream **defects** done — All eight fixed, plus seven more found while wiring (CSP frame-src blob:, print-root leak, duplicate #export-card id, unseeded shuffle in deck+script, entity double-escape, and three party-board defects).
 
+- `2026-08-14 09:51` Two framings, one field: legends.goldSaint is written by both the saint chips and the zodiac chips. goldSaintMode only relabels. This is why 'answer by birthday' is a full answer on the card rather than a lesser one — asserted in legends-check.
+
+- `2026-08-14 09:51` 'No idea what any of this is' hides the chips instead of clearing goldSaint, so a mistaken tap is undoable. That moves the responsibility to legendFacts(), which drops the pick while mode is 'lost' — the same contract anime.waifuHusbandoSkip already used.
+
+- `2026-08-14 09:51` The site's CSP blocked the feature. img-src already allowed i.ytimg.com but connect-src did not, so the card could fetch nothing to inline and a YouTube meme could never appear on an export. Found by app-check failing on console errors, not by reading.
+
+- `2026-08-14 09:51` CSP resolution is deliberately asymmetric: index.html gets img-src https: (your own pasted URL, your own interview), card.html and party.html keep the tight allowlist (someone else's sheet must not make your browser call a host the sender chose). connect-src stays narrow on both.
+
+- `2026-08-14 09:51` The twelve zodiac characters U+2648-2653 default to EMOJI presentation on macOS. CSS color computed to gold and the glyph rendered as a magenta emoji tile anyway. Fixed with a trailing U+FE0E on each symbol. Invisible in a diff, so legends-check asserts the selector is still there.
+
+- `2026-08-14 09:51` Corrected mid-build: the Optimus Prime chip originally carried from:'not a Gundam', which printed on the chip and answered the question before it was asked. Changed to 'Transformers' — spotting the odd one out IS the joke; the card supplies the punchline after the pick.
+
+- `2026-08-14 09:51` export-shot.mjs was passing an empty image map, so every shot it produced had no avatar and no thumbnail — the one script whose job is judging the export could not see the picture path at all. Now inlines first.
+
 ## Measured
 
 All observed, none estimated.
@@ -159,3 +173,70 @@ All observed, none estimated.
 _Closed 2026-08-08 11:47._
 
 _Closed 2026-08-08 11:48._
+
+---
+
+## Run — 2026-08-14 09:30
+
+**Problem.** Add a Legends section (Saint Seiya gold saints, Gundam, retro fandom) and upgrade the meme field to a previewing two-slot picker
+
+**Approach.** A 9th interview section, `legends`, sitting between Anime and Movies and
+deliberately *not* gated behind `anime.watches` — Saint Seiya and Gundam are childhood
+broadcast TV for a large audience that answers "Nah" to "do you watch anime". Ten
+questions, mixing single-select chips (reusing the existing `data-choice` handler) with
+free text (`data-field`), so the section needs no new event routing at all. The gold-saint
+question exploits the fact that the twelve Gold Saints *are* the twelve zodiac signs: one
+state field, two framings — an escape button reframes the same twelve chips from saint
+names to plain zodiac signs, and picking one reveals which saint that makes you. The meme
+field becomes a two-slot array with URL classification (YouTube / direct image / plain
+link) driving a live thumbnail.
+
+**Rejected: a `mecha` sub-branch inside the Anime section.** Cheaper — no new section, no
+`getSectionFill` case, no dots-nav change — but it puts the questions behind the exact gate
+that excludes the people most likely to have an answer. The "do you watch anime?" toggle
+means *do you watch it now*; Saint Seiya is a memory, not a habit.
+
+**Rejected: `extras.memes` as a clean array with no legacy fields.** The array is the right
+shape, but `loadSaved` deep-merges saved localStorage over the blank sheet, and old share
+links in the wild carry `extras.memeLink`. A bare rename silently drops the meme from every
+existing sheet and every previously-shared card. Migration lives in `sheet.js` instead, on
+the path both the live state and a decoded share link go through.
+
+## Measured
+
+- **54 assertions** in the new `.forge/legends-check.mjs`, all passing. Existing suites
+  unchanged and still green: `app-check` 34, `party-check` 62, `fit-check` 35 theme×layout
+  combos with 0 clipped and 0 silent drops.
+- **1 pre-existing defect found by the work**: `.forge/export-shot.mjs` passed an empty
+  image map, so the one script whose job is judging the real PNG export rendered every
+  image — avatar included — as an empty frame.
+- **1 CSP defect found by `app-check`, not by reading**: `connect-src` omitted
+  `i.ytimg.com`, so a YouTube meme could never be inlined and would have exported as a hole.
+- **2 defects found by looking at the rendered page** after the checks were green: zodiac
+  glyphs drawn as colour emoji ignoring the gold palette, and the Optimus Prime chip
+  spoiling its own joke. Neither was visible to a static read or to any assertion.
+- Card model went from 11 to 12 blocks on the fixture; the `vertical` preset absorbed the
+  Legends block and the thumbnail at 800×2083 with nothing dropped.
+
+## Open
+
+1. **The party board ignores `legends` entirely.** `js/party/analyze.js` has no category for
+   a shared Gold Saint, Gundam or Saturday-morning hero — which is a shame, because those
+   are better icebreakers than a shared platform tick. Out of scope here (the ask was
+   questions, not party features) and it needs a `CATEGORIES` rank decision plus new
+   expected values in `party-check.mjs`, which asserts exact overlaps.
+2. **An arbitrary image-URL meme never reaches the card.** It previews in the interview
+   (`img-src https:` on index.html) but cannot be inlined, because `connect-src` is narrow
+   by design, so the card falls back to the note plus the link. Only YouTube memes get a
+   thumbnail on the exported card. The fix is routing thumbnails through the existing
+   Cloudflare Worker as a CORS-safe proxy — one host in the CSP, no wildcard — which means
+   a worker change and a deploy.
+3. **`i.ytimg.com` is an availability dependency for the card's thumbnail.** If YouTube
+   changes that URL shape, the classifier silently produces a dead thumb; the graceful
+   path means the card just loses the picture, so nothing alerts.
+4. **Nine sections is getting long.** The interview was already ~5 minutes; Legends adds
+   ten questions. Nothing measured this, and no one has been asked to fill it end to end.
+   Worth watching whether people abandon at section 5.
+5. **Not committed.** Every change is in the working tree only.
+
+_Closed 2026-08-14 09:52._

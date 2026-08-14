@@ -1,5 +1,5 @@
 import { FREE_TIME_OPTIONS, getRPGClass } from './data.js';
-import { getTwoTruths } from './card/model.js';
+import { getTwoTruths, legendFacts } from './card/model.js';
 import { showToast } from './utils.js';
 
 export function generateScript(s) {
@@ -116,6 +116,19 @@ export function generateScript(s) {
     if (topMovies.length) {
       lines.push(`**Movies/Series:** ${topMovies.map(m => m.name).join(', ')}`);
     }
+    lines.push('');
+  }
+
+  // --- Legends ---
+  // Read from the card model rather than re-deriving from state, so the script
+  // and the card cannot disagree about whether a Gold Saint counts as answered.
+  const legends = legendFacts(s);
+  if (legends.length) {
+    lines.push('## ⚔️ Legends');
+    lines.push('');
+    lines.push('*Childhood canon — reliable icebreaker territory:*');
+    lines.push('');
+    legends.forEach(l => lines.push(`- **${l.label}:** ${l.value}`));
     lines.push('');
   }
 

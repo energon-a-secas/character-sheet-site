@@ -5,7 +5,11 @@
 // looks and what still fits. Adding a field to the card means adding it here once,
 // not in a draw function plus a matching measure function.
 
-import { getRPGClass, PLATFORMS, FREE_TIME_OPTIONS } from '../data.js';
+import {
+  getRPGClass, PLATFORMS, FREE_TIME_OPTIONS,
+  GUNDAMS, DB_FORMS, TF_FACTIONS, goldSaintById,
+} from '../data.js';
+import { filledMemes } from '../media-embed.js';
 import { selectedAvatar, highlightedMedia } from './media.js';
 
 // Higher priority survives when a fixed-size layout has to drop content.
@@ -74,6 +78,49 @@ export function getTwoTruths(s) {
   ].filter(i => i.text);
   if (items.length < 3) return [];
   return seededShuffle(items, sheetSeed(s));
+}
+
+/**
+ * The Legends facts worth printing.
+ *
+ * `goldSaint` is skipped while `goldSaintMode` is `lost` — the interview hides the
+ * chips in that mode rather than clearing the field, so an earlier pick is still
+ * sitting there and must not reach the card. Same contract as
+ * `anime.waifuHusbandoSkip`.
+ */
+export function legendFacts(s) {
+  const l = s.legends;
+  if (!l) return [];
+  const items = [];
+
+  const saint = l.goldSaintMode === 'lost' ? null : goldSaintById(l.goldSaint);
+  if (saint) {
+    items.push({ label: 'Gold Saint', value: `${saint.saint} of ${saint.sign} ${saint.symbol}` });
+  }
+
+  const gundam = GUNDAMS.find(g => g.id === l.gundam);
+  if (gundam) {
+    items.push({
+      label: 'Mobile suit',
+      // The joke only lands if the card is in on it. Printing "Optimus Prime"
+      // under "Mobile suit" with a straight face reads as a data error.
+      value: gundam.impostor ? `${gundam.name} — which is not a Gundam` : gundam.name,
+    });
+  }
+
+  const form = DB_FORMS.find(f => f.id === l.dbForm);
+  if (form) items.push({ label: 'Running on', value: form.label });
+
+  const faction = TF_FACTIONS.find(f => f.id === l.tfFaction);
+  if (faction) items.push({ label: 'Allegiance', value: faction.label });
+
+  if (l.saturdayHero)     items.push({ label: 'Saturday-morning hero', value: l.saturdayHero });
+  if (l.firstMachine)     items.push({ label: 'First machine', value: l.firstMachine });
+  if (l.openingTheme)     items.push({ label: 'Knows by heart', value: l.openingTheme });
+  if (l.arcadeGame)       items.push({ label: 'Ate my coins', value: l.arcadeGame });
+  if (l.meetingChampion)  items.push({ label: 'Sends into bad meetings', value: l.meetingChampion });
+
+  return items;
 }
 
 function freeTimeLabel(s) {
@@ -271,17 +318,26 @@ export function buildCardModel(s) {
     push({ id: 'takes', kind: 'facts', priority: PRIORITY.medium, title: 'Hot takes', items: takes });
   }
 
-  // ── Meme — collected in Extras, previously never rendered ─────────────────
-  if (s.extras.memeLink || s.extras.memeNote) {
+  // ── Legends ───────────────────────────────────────────────────────────────
+  const legends = legendFacts(s);
+  if (legends.length) {
+    push({ id: 'legends', kind: 'facts', priority: PRIORITY.medium, title: 'Legends', items: legends });
+  }
+
+  // ── Memes ─────────────────────────────────────────────────────────────────
+  filledMemes(s).forEach((m, i) => {
     push({
-      id: 'meme',
+      id: `meme${i}`,
       kind: 'link',
       priority: PRIORITY.low,
-      title: 'Lives in my head rent-free',
-      url: s.extras.memeLink,
-      note: s.extras.memeNote,
+      title: i === 0 ? 'Lives in my head rent-free' : 'Also this',
+      url: m.url,
+      note: m.note,
+      // A remote URL. `renderCard` only draws it once it has been inlined, so a
+      // host that refuses CORS costs the thumbnail and nothing else.
+      thumb: m.media?.thumb || '',
     });
-  }
+  });
 
   // ── Socials ───────────────────────────────────────────────────────────────
   const handles = s.identity.handles.filter(h => h.handle);
@@ -312,6 +368,7 @@ export function collectImageUrls(model) {
   if (model.header.avatar?.image) urls.push(model.header.avatar.image);
   const mediaBlock = model.blocks.find(b => b.kind === 'media');
   if (mediaBlock) mediaBlock.items.forEach(m => { if (m.image) urls.push(m.image); });
+  model.blocks.forEach(b => { if (b.kind === 'link' && b.thumb) urls.push(b.thumb); });
   return [...new Set(urls)];
 }
 

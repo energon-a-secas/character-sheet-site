@@ -1,7 +1,7 @@
 import { state, save, resetState, convex, api, deepMerge } from './state.js';
 import { getComment, showComment, clearComment } from './comments.js';
 import { SECTIONS } from './data.js';
-import { render, renderSection, renderProgressBar, renderNav, renderMediaShelf, renderSectionDots } from './render.js';
+import { render, renderSection, renderProgressBar, renderNav, renderMediaShelf, renderSectionDots, memePreviewHtml } from './render.js';
 import { renderBuilder } from './builder.js';
 import { getMediaOptions } from './card/media.js';
 import { searchGames, searchAnime, searchAnimeCharacters, searchMovies, searchCities } from './api.js';
@@ -34,6 +34,12 @@ function onInput(e) {
   if (el.dataset.field) {
     setNestedValue(state, el.dataset.field, el.value);
     save(state);
+    // A field that drives a preview updates only that node. Calling renderSection
+    // here would rebuild the input mid-keystroke and take the caret with it.
+    if (el.dataset.preview) {
+      const target = $(el.dataset.preview);
+      if (target) target.innerHTML = memePreviewHtml(el.value);
+    }
     tryComment(el.dataset.field);
     return;
   }

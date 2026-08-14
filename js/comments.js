@@ -122,9 +122,45 @@ const COMMENT_RULES = [
     match: (f, s) => f === 'identity.bestTimeToPresent' && s.identity.bestTimeToPresent && /\b[67]\s*am\b/i.test(s.identity.bestTimeToPresent),
     messages: ["6am? You ARE the 6am meeting."],
   },
+  // Legends
+  {
+    match: (f, s) => f === 'legends.gundam' && s.legends.gundam === 'optimus',
+    messages: [
+      "That's a Transformer. Bold. Leaving it on your card.",
+      "Optimus Prime is not a Gundam. We both know this. Noted anyway.",
+      "Wrong franchise, right energy. Approved.",
+    ],
+  },
+  {
+    match: (f, s) => f === 'legends.goldSaintMode' && s.legends.goldSaintMode === 'zodiac',
+    messages: [
+      "Fine — birthday it is. We'll do the rest.",
+      "Nobody has to know you answered the easy version.",
+    ],
+  },
+  {
+    match: (f, s) => f === 'legends.goldSaintMode' && s.legends.goldSaintMode === 'lost',
+    messages: ["Completely fair. It was a very specific childhood."],
+  },
+  {
+    match: (f, s) => f === 'legends.goldSaint' && s.legends.goldSaint === 'cancer',
+    messages: ["Deathmask. Of all twelve. Interesting choice."],
+  },
+  {
+    match: (f, s) => f === 'legends.dbForm' && s.legends.dbForm === 'krillin',
+    messages: ["Krillin. The most honest answer on this page."],
+  },
+  {
+    match: (f, s) => f === 'legends.tfFaction' && s.legends.tfFaction === 'decepticon',
+    messages: ["Decepticon. HR has been notified."],
+  },
+  {
+    match: (f, s) => f === 'legends.retroDepth' && s.legends.retroDepth === 'lost',
+    messages: ["No shame. Skip ahead, none of this is on the test."],
+  },
   // Extras
   {
-    match: (f, s) => f === 'extras.memeLink' && s.extras.memeLink,
+    match: (f, s) => /^extras\.memes\.\d+\.url$/.test(f) && s.extras.memes.some(m => m.url),
     messages: ["Meme acquired. Cultural artifact preserved."],
   },
 ];

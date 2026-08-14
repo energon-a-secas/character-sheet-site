@@ -40,7 +40,7 @@ function blockHtml(b, imageSrc) {
     case 'columns': return columnsHtml(b);
     case 'quote': return quoteHtml(b);
     case 'tags': return tagsHtml(b);
-    case 'link': return linkHtml(b);
+    case 'link': return linkHtml(b, imageSrc);
     case 'socials': return socialsHtml(b);
     case 'media': return mediaHtml(b, imageSrc);
     default: return '';
@@ -126,10 +126,15 @@ function tagsHtml(b) {
   </section>`;
 }
 
-function linkHtml(b) {
+function linkHtml(b, imageSrc) {
   const shown = b.note || b.url;
-  return `<section class="cc-block cc-link" data-block="${escHtml(b.id)}">
+  // Only drawn once the thumbnail has been inlined as a data: URL. A remote src
+  // here would export as an empty box: an SVG foreignObject cannot fetch, and an
+  // arbitrary image host owes us no CORS header. Text is the guaranteed half.
+  const thumb = b.thumb ? imageSrc(b.thumb) : '';
+  return `<section class="cc-block cc-link${thumb ? ' cc-link--thumbed' : ''}" data-block="${escHtml(b.id)}">
     <h2 class="cc-title">${escHtml(b.title)}</h2>
+    ${thumb ? `<img class="cc-link-thumb" src="${escHtml(thumb)}" alt="">` : ''}
     <div class="cc-link-value">${escHtml(shown)}</div>
     ${b.note && b.url ? `<div class="cc-link-url">${escHtml(b.url)}</div>` : ''}
   </section>`;

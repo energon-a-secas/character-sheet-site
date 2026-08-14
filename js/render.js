@@ -1,5 +1,10 @@
 import { state } from './state.js';
-import { SECTIONS, CONSOLES, PLATFORMS, HOBBY_OPTIONS, WILDCARDS, FREE_TIME_OPTIONS, ANIME_GENRES, MOVIE_GENRES, getSectionFill } from './data.js';
+import {
+  SECTIONS, CONSOLES, PLATFORMS, HOBBY_OPTIONS, WILDCARDS, FREE_TIME_OPTIONS,
+  ANIME_GENRES, MOVIE_GENRES, GOLD_SAINTS, GUNDAMS, DB_FORMS, TF_FACTIONS,
+  RETRO_DEPTH, goldSaintById, getSectionFill,
+} from './data.js';
+import { classifyMediaUrl } from './media-embed.js';
 import { escHtml, $ } from './utils.js';
 import { IconPerson, IconAnime, IconGame, IconMovie, IconPin } from './icons.js';
 
@@ -118,6 +123,7 @@ export function renderSection(animate) {
     case 'identity':  html += renderIdentity(); break;
     case 'gaming':    html += renderGaming(); break;
     case 'anime':     html += renderAnime(); break;
+    case 'legends':   html += renderLegends(); break;
     case 'movies':    html += renderMovies(); break;
     case 'hobbies':   html += renderHobbies(); break;
     case 'wildcards': html += renderWildcards(); break;
@@ -282,6 +288,123 @@ function renderAnime() {
     
     html += '</div>';
   }
+
+  return html;
+}
+
+/**
+ * The Gold Saint question, in whichever framing the person asked for.
+ *
+ * `legends.goldSaintMode` chooses the labels, not the answer — the twelve chips
+ * write the same `legends.goldSaint` field either way, so switching framing keeps
+ * a pick that was already made. In `lost` mode the chips are hidden rather than
+ * cleared: a mistaken tap on "never seen it" should not delete an answer, and the
+ * card already ignores `goldSaint` while the mode says `lost`.
+ */
+function renderGoldSaint(d) {
+  const mode = d.goldSaintMode;
+  const picked = goldSaintById(d.goldSaint);
+
+  const label = mode === 'zodiac'
+    ? 'What\'s your zodiac sign?'
+    : 'Favourite Gold Saint?';
+  const hint = mode === 'zodiac'
+    ? 'The twelve Gold Saints guard the twelve houses of the zodiac — one each. Pick your sign and we\'ll tell you whose armour you\'d be wearing.'
+    : 'Saint Seiya / Knights of the Zodiac — the twelve of the Sanctuary.';
+
+  let chips = '';
+  if (mode !== 'lost') {
+    chips = `<div class="saint-grid">
+      ${GOLD_SAINTS.map(g => {
+        const active = d.goldSaint === g.id ? ' active' : '';
+        const title = mode === 'zodiac' ? g.sign : g.saint;
+        const sub = mode === 'zodiac' ? g.dates : g.sign;
+        return `<button class="saint-chip${active}" data-choice="legends.goldSaint" data-val="${g.id}">
+          <span class="saint-symbol" aria-hidden="true">${g.symbol}</span>
+          <span class="saint-name">${escHtml(title)}</span>
+          <span class="saint-sub">${escHtml(sub)}</span>
+        </button>`;
+      }).join('')}
+    </div>`;
+  }
+
+  let reveal = '';
+  if (mode === 'zodiac' && picked) {
+    reveal = `<div class="saint-reveal">
+      <span class="saint-reveal-symbol" aria-hidden="true">${picked.symbol}</span>
+      <div>
+        <strong>${escHtml(picked.saint)} of ${escHtml(picked.sign)}</strong>
+        <div class="field-hint">That's your Gold Saint. You didn't need to know the show after all.</div>
+      </div>
+    </div>`;
+  }
+
+  const lostNote = mode === 'lost'
+    ? '<div class="field-hint saint-lost">Fair. It was a Japanese show about teenagers in zodiac armour punching each other at the speed of light. Moving on.</div>'
+    : '';
+
+  return `
+    <div class="field-group">
+      <label class="field-label">${escHtml(label)}</label>
+      <div class="field-hint">${escHtml(hint)}</div>
+      ${chips}
+      ${reveal}
+      ${lostNote}
+      <div class="escape-row">
+        <button class="escape-btn${mode === 'zodiac' ? ' active' : ''}" data-escape="legends.goldSaintMode" data-val="zodiac">I don't know this one — just ask my sign</button>
+        <button class="escape-btn${mode === 'lost' ? ' active' : ''}" data-escape="legends.goldSaintMode" data-val="lost">No idea what any of this is</button>
+      </div>
+    </div>`;
+}
+
+function renderLegends() {
+  const d = state.legends;
+
+  const pillRow = (label, hint, field, options) => `
+    <div class="field-group">
+      <label class="field-label">${escHtml(label)}</label>
+      ${hint ? `<div class="field-hint">${escHtml(hint)}</div>` : ''}
+      <div class="quick-choice">
+        ${options.map(o => `<button class="choice-pill${d[field.split('.')[1]] === o.id ? ' active' : ''}" data-choice="${field}" data-val="${o.id}">${escHtml(o.label)}</button>`).join('')}
+      </div>
+    </div>`;
+
+  const textRow = (label, hint, field, placeholder, max = 100) => `
+    <div class="field-group">
+      <label class="field-label">${escHtml(label)}</label>
+      ${hint ? `<div class="field-hint">${escHtml(hint)}</div>` : ''}
+      <input class="field-input" type="text" value="${escHtml(d[field.split('.')[1]])}" data-field="${field}" placeholder="${escHtml(placeholder)}" maxlength="${max}">
+    </div>`;
+
+  let html = pillRow(
+    'How deep does the retro go?',
+    'Sets expectations for everything below — "completely lost" is a real answer.',
+    'legends.retroDepth', RETRO_DEPTH,
+  );
+
+  html += renderGoldSaint(d);
+
+  html += `
+    <div class="field-group">
+      <label class="field-label">Favourite Gundam?</label>
+      <div class="field-hint">Pick the mobile suit. Choose carefully — one of these is not a Gundam.</div>
+      <div class="gundam-grid">
+        ${GUNDAMS.map(g => `
+          <button class="gundam-chip${d.gundam === g.id ? ' active' : ''}${g.impostor ? ' gundam-chip--impostor' : ''}" data-choice="legends.gundam" data-val="${g.id}">
+            <span class="gundam-name">${escHtml(g.name)}</span>
+            <span class="gundam-from">${escHtml(g.from)}</span>
+          </button>`).join('')}
+      </div>
+    </div>`;
+
+  html += pillRow('What power-up are you running on today?', 'Dragon Ball, but for Mondays.', 'legends.dbForm', DB_FORMS);
+  html += pillRow('Autobot or Decepticon?', '', 'legends.tfFaction', TF_FACTIONS);
+
+  html += textRow('First console or computer you ever touched', 'The one that started it — borrowed cousins\' consoles count.', 'legends.firstMachine', 'Family Game, Sega Genesis, a beige 486...', 80);
+  html += textRow('An opening theme you still know by heart', 'Bonus points if you know it in a dubbed language.', 'legends.openingTheme', 'Cha-La Head-Cha-La, Pegasus Fantasy...', 100);
+  html += textRow('Your Saturday-morning hero', 'Cartoon, tokusatsu, or whatever was on where you grew up.', 'legends.saturdayHero', 'He-Man, Sailor Moon, El Chapulín Colorado...', 80);
+  html += textRow('The arcade game that ate your coins', '', 'legends.arcadeGame', 'Metal Slug, Street Fighter II, Marvel vs Capcom...', 80);
+  html += textRow('Who would you send into a bad meeting?', 'Any hero, mech, or cartoon character. They fight on your behalf.', 'legends.meetingChampion', 'Optimus Prime, obviously', 80);
 
   return html;
 }
@@ -462,15 +585,50 @@ function renderWildcards() {
   return wildcardHtml + truthLieHtml;
 }
 
-function renderExtras() {
-  const d = state.extras;
-  return `
-    <div class="field-group">
-      <label class="field-label">A meme or reference that lives in your head rent-free</label>
-      <div class="field-hint">So presenters get your vibe — link or describe.</div>
-      <input class="field-input" type="url" value="${escHtml(d.memeLink)}" data-field="extras.memeLink" placeholder="Paste a link to a meme, video, or vibe" maxlength="300">
-      <input class="field-input" type="text" value="${escHtml(d.memeNote)}" data-field="extras.memeNote" placeholder="What is it / why it matters" maxlength="120" style="margin-top:var(--space-2)">
+/**
+ * The preview under a meme URL box.
+ *
+ * Exported because `onInput` swaps it in place on every keystroke: a full
+ * `renderSection` would rebuild the input the person is typing into and take the
+ * caret with it.
+ */
+export function memePreviewHtml(url) {
+  const media = classifyMediaUrl(url);
+  if (!media) {
+    return (url || '').trim()
+      ? '<div class="meme-preview meme-preview--empty">Not a link yet — needs to start with http:// or https://</div>'
+      : '';
+  }
+  if (media.kind === 'link') {
+    return `<div class="meme-preview meme-preview--link">
+      <span class="meme-kind">Link</span>
+      <span class="meme-host">${escHtml(media.label)}</span>
     </div>`;
+  }
+  return `<div class="meme-preview">
+    <img class="meme-thumb" src="${escHtml(media.thumb)}" alt="" loading="lazy"
+         onerror="this.closest('.meme-preview').classList.add('meme-preview--broken')">
+    <span class="meme-kind">${escHtml(media.label)}</span>
+    <span class="meme-broken-note">Couldn't load that image — the link still works on your card.</span>
+  </div>`;
+}
+
+function renderExtras() {
+  const memes = state.extras.memes;
+  const slots = memes.map((m, i) => `
+    <div class="field-group meme-slot">
+      <label class="field-label">${i === 0
+        ? 'A meme or reference that lives in your head rent-free'
+        : 'One more, if the first one didn\'t cover it'}</label>
+      <div class="field-hint">${i === 0
+        ? 'YouTube link or a direct image URL shows a preview. Anything else just links.'
+        : 'Optional — some people are a two-meme situation.'}</div>
+      <input class="field-input" type="url" value="${escHtml(m.url)}" data-field="extras.memes.${i}.url" data-preview="meme-preview-${i}" placeholder="https://youtu.be/... or https://.../meme.jpg" maxlength="300">
+      <div class="meme-preview-slot" id="meme-preview-${i}">${memePreviewHtml(m.url)}</div>
+      <input class="field-input" type="text" value="${escHtml(m.note)}" data-field="extras.memes.${i}.note" placeholder="What is it / why it matters" maxlength="120" style="margin-top:var(--space-2)">
+    </div>`).join('');
+
+  return slots;
 }
 
 function renderIntro() {

@@ -2,7 +2,7 @@
 
 # Character Sheet
 
-**Know Your Party** — RPG-style personality interview. Answer eight sections about your gaming, anime, film and hobby taste, get an RPG class, then export a card worth actually sharing — and compare cards with your team.
+**Know Your Party** — RPG-style personality interview. Answer nine sections about your gaming, anime, retro-cartoon and hobby taste, get an RPG class, then export a card worth actually sharing — and compare cards with your team.
 
 [![Live][badge-site]][url-site]
 [![HTML5][badge-html]][url-html]
@@ -30,13 +30,15 @@
 
 ## Overview
 
-**Character Sheet** is a personality interview that builds an RPG-style character card from your answers — the thing you hand round in a first meeting instead of saying your job title twice. Eight themed sections, an auto-assigned RPG class, and an export designed to survive being pasted into Slack.
+**Character Sheet** is a personality interview that builds an RPG-style character card from your answers — the thing you hand round in a first meeting instead of saying your job title twice. Nine themed sections, an auto-assigned RPG class, and an export designed to survive being pasted into Slack.
 
 **Live:** [charactersheet.neorgon.com](https://charactersheet.neorgon.com/)
 
 ## Features
 
-- **Eight-section interview** — Identity, Your Story, Gaming, Anime, Movies & Series, Hobbies, Hot Takes, Extras, with live per-section progress
+- **Nine-section interview** — Identity, Your Story, Gaming, Anime, Legends, Movies & Series, Hobbies, Hot Takes, Extras, with live per-section progress
+- **Legends** — the Saturday-morning canon, with no anime credentials required. Favourite Gold Saint (Saint Seiya), favourite Gundam, Dragon Ball power-up, Autobot or Decepticon, first console, the opening theme you still know by heart. Don't know Saint Seiya? Answer by birthday instead and it tells you which Gold Saint that makes you
+- **Meme slots with previews** — paste a YouTube link or an image URL and see the thumbnail, in the interview and on the exported card
 - **Media search** — real games, anime and films via a Cloudflare Worker proxying RAWG, Jikan and TMDB; cover art and character portraits land on the card
 - **RPG class auto-assignment** — your answers pick the class (Digital Ronin, Screen Sage, Pixel Paladin, and six more)
 - **The card is real HTML** — themes are CSS custom properties, layouts are CSS grid and multicol. The element on screen *is* the element exported, so a preview that looks right cannot produce a wrong PNG

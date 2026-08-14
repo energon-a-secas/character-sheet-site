@@ -21,15 +21,20 @@ await page.goto('http://localhost:8814/card.html');
 const b64 = await page.evaluate(async ([sheetIn, layout, theme, scale]) => {
   const base = location.origin + '/js/';
   const { hydrateSheet } = await import(base + 'sheet.js');
-  const { buildCardModel } = await import(base + 'card/model.js');
+  const { buildCardModel, collectImageUrls } = await import(base + 'card/model.js');
   const { renderCard } = await import(base + 'card/render.js');
-  const { cardToPngBlob } = await import(base + 'card/export.js');
+  const { cardToPngBlob, inlineImages } = await import(base + 'card/export.js');
 
   const sheet = hydrateSheet(sheetIn);
   document.getElementById('reader-status').hidden = true;
   document.getElementById('reader-card-wrap').hidden = false;
   const card = document.getElementById('reader-card');
-  renderCard(card, buildCardModel(sheet), { ...sheet.cardConfig, theme, layout }, new Map());
+  const model = buildCardModel(sheet);
+  // Inline first. Passing an empty map renders every image as an empty frame,
+  // which is precisely the failure this script exists to catch — a shot with no
+  // pictures in it cannot tell you whether the picture path works.
+  const images = await inlineImages(collectImageUrls(model));
+  renderCard(card, model, { ...sheet.cardConfig, theme, layout }, images);
 
   const blob = await cardToPngBlob(card, scale);
   const buf = new Uint8Array(await blob.arrayBuffer());

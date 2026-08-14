@@ -1,9 +1,9 @@
 import { ConvexHttpClient } from "https://esm.sh/convex@1.21.0/browser";
 // The sheet shape lives in sheet.js so the read-only card page can import it
 // without loading a Convex client it never uses.
-import { blankSheet, hydrateSheet, deepMerge } from './sheet.js';
+import { blankSheet, hydrateSheet, deepMerge, migrateSheet } from './sheet.js';
 
-export { blankSheet, hydrateSheet, deepMerge };
+export { blankSheet, hydrateSheet, deepMerge, migrateSheet };
 
 // Run: npx convex dev — then paste your deployment URL here
 const CONVEX_URL = "https://unique-lobster-957.convex.cloud";
@@ -31,6 +31,7 @@ export function loadSaved(s) {
     if (raw) {
       const saved = JSON.parse(raw);
       deepMerge(s, saved);
+      migrateSheet(s);
     }
   } catch { /* ignore */ }
 }

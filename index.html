@@ -3,9 +3,18 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; base-uri 'self'; form-action 'self'; frame-ancestors 'none'; script-src 'self' 'unsafe-inline' https://esm.sh cdn.jsdelivr.net cdnjs.cloudflare.com https://challenges.cloudflare.com https://www.googletagmanager.com https://www.google-analytics.com https://plausible.io; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdn.neorgon.org; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: blob: https://*.convex.cloud https://img.clerk.com https://cdn.neorgon.org https://i.ytimg.com https://yt3.ggpht.com https://www.google-analytics.com https://media.rawg.io https://cdn.myanimelist.net https://image.tmdb.org https://cdn.simpleicons.org; connect-src 'self' https://*.convex.cloud https://*.clerk.accounts.dev https://*.accounts.dev https://clerk-telemetry.com https://api.clerk.com https://challenges.cloudflare.com https://*.workers.dev https://www.google-analytics.com https://www.googletagmanager.com https://plausible.io https://media.rawg.io https://cdn.myanimelist.net https://image.tmdb.org https://geocoding-api.open-meteo.com; frame-src 'self' blob: https://challenges.cloudflare.com https://*.clerk.accounts.dev https://*.accounts.dev https://www.youtube.com https://www.youtube-nocookie.com; worker-src 'self' blob:">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; base-uri 'self'; form-action 'self'; frame-ancestors 'none'; script-src 'self' 'unsafe-inline' https://esm.sh cdn.jsdelivr.net cdnjs.cloudflare.com https://challenges.cloudflare.com https://www.googletagmanager.com https://www.google-analytics.com https://plausible.io; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdn.neorgon.org; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: blob: https: ; connect-src 'self' https://*.convex.cloud https://*.clerk.accounts.dev https://*.accounts.dev https://clerk-telemetry.com https://api.clerk.com https://challenges.cloudflare.com https://*.workers.dev https://www.google-analytics.com https://www.googletagmanager.com https://plausible.io https://media.rawg.io https://cdn.myanimelist.net https://image.tmdb.org https://geocoding-api.open-meteo.com https://i.ytimg.com; frame-src 'self' blob: https://challenges.cloudflare.com https://*.clerk.accounts.dev https://*.accounts.dev https://www.youtube.com https://www.youtube-nocookie.com; worker-src 'self' blob:">
   <meta name="referrer" content="strict-origin-when-cross-origin">
   <meta http-equiv="X-Content-Type-Options" content="nosniff">
+  <!--
+    img-src is `https:` on THIS page only. The meme field takes an arbitrary image
+    URL, and a preview of a URL you pasted yourself into your own interview is the
+    feature. card.html and party.html keep the tight allowlist on purpose: there
+    you are viewing *someone else's* sheet, and a wildcard would let a shared link
+    make your browser call a host its sender chose. connect-src stays narrow on
+    both — i.ytimg.com is listed because the card inlines YouTube thumbnails for
+    export, and that is a single known host, not a wildcard.
+  -->
   <!-- Clerk: Dashboard → User & Authentication → enable Email and Username so people can sign in with either. -->
   <meta name="clerk-publishable-key" content="pk_test_bGlrZWQtcHVwLTE3LmNsZXJrLmFjY291bnRzLmRldiQ">
   <title>Character Sheet | Team Intro Card Builder</title>

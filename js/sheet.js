@@ -80,9 +80,30 @@ export function blankSheet() {
       breakfastSTier: { value: '', skip: '' },
     },
 
+    // Saturday-morning canon. Deliberately its own section rather than a branch of
+    // `anime`: these are broadcast-TV memories, and gating them behind "do you
+    // watch anime?" hides them from the people most likely to have an answer.
+    legends: {
+      // One of the twelve zodiac ids. The twelve Gold Saints *are* the twelve
+      // signs, so this single field answers both framings of the question;
+      // `goldSaintMode` only decides which one the chips are labelled with.
+      goldSaint: '',
+      goldSaintMode: '',   // '' | 'zodiac' (asked by sign) | 'lost' (never seen it)
+      gundam: '',
+      dbForm: '',
+      tfFaction: '',
+      retroDepth: '',
+      firstMachine: '',
+      openingTheme: '',
+      saturdayHero: '',
+      arcadeGame: '',
+      meetingChampion: '',
+    },
+
     extras: {
-      memeLink: '',
-      memeNote: '',
+      // Two slots. `url` is classified at render time into a YouTube thumbnail,
+      // a direct image, or a plain link — see js/media-embed.js.
+      memes: [{ url: '', note: '' }, { url: '', note: '' }],
     },
 
     intro: {
@@ -137,6 +158,45 @@ export function deepMerge(target, source) {
   }
 }
 
+const MEME_SLOTS = 2;
+
+/**
+ * Bring an older sheet up to the current shape, in place.
+ *
+ * Runs on every path that produces a live sheet — `loadSaved` (localStorage) and
+ * `hydrateSheet` (share links, roster links, JSON import) — because a sheet that
+ * predates a shape change arrives through all of them. `extras.memeLink` /
+ * `memeNote` were a single flat pair before the meme became a two-slot array;
+ * merging the new blank shape over an old sheet leaves the array empty and the
+ * legacy keys stranded, so the meme silently disappears from cards that had one.
+ *
+ * Also pads the array back to `MEME_SLOTS`: a share link prunes empty values, so
+ * a sheet with only the first meme filled decodes with a one-element array.
+ */
+export function migrateSheet(sheet) {
+  const extras = sheet.extras;
+  if (!extras) return sheet;
+
+  if (!Array.isArray(extras.memes)) extras.memes = [];
+
+  if (extras.memeLink || extras.memeNote) {
+    extras.memes[0] = {
+      url: extras.memes[0]?.url || extras.memeLink || '',
+      note: extras.memes[0]?.note || extras.memeNote || '',
+    };
+  }
+  delete extras.memeLink;
+  delete extras.memeNote;
+
+  for (let i = 0; i < MEME_SLOTS; i++) {
+    const slot = extras.memes[i];
+    extras.memes[i] = { url: slot?.url || '', note: slot?.note || '' };
+  }
+  extras.memes.length = MEME_SLOTS;
+
+  return sheet;
+}
+
 /**
  * Fill a partial sheet out to the full shape.
  *
@@ -148,5 +208,5 @@ export function deepMerge(target, source) {
 export function hydrateSheet(partial) {
   const sheet = blankSheet();
   if (partial) deepMerge(sheet, partial);
-  return sheet;
+  return migrateSheet(sheet);
 }
