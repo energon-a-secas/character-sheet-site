@@ -25,3 +25,11 @@ env.js
 
 # Card-export visual checks — regenerate with .forge/export-shot.mjs
 .forge/*.png
+
+# ── Neorgon base (enforced by smoke check 20) ─────────────────────────────────
+!.env.example
+.forge/
+__pycache__/
+*.py[cod]
+skills-archived/
+*.log
