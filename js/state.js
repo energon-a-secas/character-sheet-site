@@ -1,3 +1,8 @@
+// Raw localStorage throws in private browsing, where the object exists but
+// every access raises. These wrappers return a fallback instead. Storage
+// keys and formats are unchanged, so existing saved data still loads.
+import { safeRemove } from './neorgon-persist.js';
+
 import { ConvexHttpClient } from "https://esm.sh/convex@1.21.0/browser";
 // The sheet shape lives in sheet.js so the read-only card page can import it
 // without loading a Convex client it never uses.
@@ -53,6 +58,6 @@ export function resetState(s) {
   delete fresh._sheetId;
   delete fresh._sheetName;
   Object.assign(s, fresh);
-  localStorage.removeItem(STORAGE_KEY);
+  safeRemove(STORAGE_KEY);
 }
 
