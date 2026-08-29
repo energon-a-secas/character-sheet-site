@@ -62,9 +62,9 @@ const result = await page.evaluate(async (sheetIn) => {
       wantH: preset.height ?? `>=${preset.minHeight}`,
       sizeOk: preset.height ? card.offsetHeight === preset.height : card.offsetHeight >= preset.minHeight,
       png: bmp ? `${bmp.width}x${bmp.height}` : 'null',
-      dropped: dropped.join(',') || '—',
+      dropped: dropped.join(',') || '-',
       note: card.querySelector('.cc-dropped')?.textContent ?? null,
-      clipped: clipped.join(',') || '—',
+      clipped: clipped.join(',') || '-',
       bodyOverflowX: body.scrollWidth > body.clientWidth + 1,
     });
   }
@@ -100,8 +100,8 @@ for (const r of result.sizes) {
 }
 
 const sizeFails = result.sizes.filter((r) => !r.sizeOk);
-const clipFails = result.sizes.filter((r) => r.clipped !== '—');
-const silent = result.sizes.filter((r) => r.dropped !== '—' && !r.note);
+const clipFails = result.sizes.filter((r) => r.clipped !== '-');
+const silent = result.sizes.filter((r) => r.dropped !== '-' && !r.note);
 const matrixErrs = result.matrix.filter((m) => m.err);
 const matrixClips = result.matrix.filter((m) => m.clipped > 0);
 
@@ -111,7 +111,7 @@ console.log(`console errors: ${consoleErrors.length}`);
 for (const e of consoleErrors) console.log(`  ${e}`);
 
 const failed = sizeFails.length || clipFails.length || silent.length || matrixErrs.length || matrixClips.length;
-console.log(`\n${failed ? 'FAIL' : 'PASS'} — size ${sizeFails.length}, clipped ${clipFails.length}, silent-drop ${silent.length}`);
+console.log(`\n${failed ? 'FAIL' : 'PASS'}, size ${sizeFails.length}, clipped ${clipFails.length}, silent-drop ${silent.length}`);
 
 await browser.close();
 process.exit(failed ? 1 : 0);

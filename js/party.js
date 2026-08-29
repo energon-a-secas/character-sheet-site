@@ -69,7 +69,7 @@ function reportIntake({ ok, failed, skipped }) {
   if (ok) parts.push(`Added ${ok} sheet${ok > 1 ? 's' : ''}`);
   if (skipped.length) parts.push(skipped.join('; '));
   if (failed.length) {
-    parts.push(`${failed.length} link${failed.length > 1 ? 's' : ''} could not be read — the part after the # may have been cut off`);
+    parts.push(`${failed.length} link${failed.length > 1 ? 's' : ''} could not be read. The part after the # may have been cut off`);
   }
   setError(parts.join(' · '));
   if (ok) render();
@@ -113,7 +113,7 @@ function onAddMine() {
     return;
   }
   if (!raw) {
-    setError('No sheet in this browser yet — build one first.');
+    setError('No sheet in this browser yet: build one first.');
     return;
   }
   try {
@@ -213,7 +213,7 @@ function renderOverlap({ hours, best, window: win, unknown, placed }) {
     const strength = placed ? n / placed : 0;
     const isBest = n === best && best > 0;
     return `<div class="party-hour${isBest ? ' is-best' : ''}" style="--fill:${strength.toFixed(3)}"
-      title="${fmtHour(h.utcHour)} UTC — ${n ? escHtml(h.available.join(', ')) : 'nobody'}">
+      title="${fmtHour(h.utcHour)} UTC: ${n ? escHtml(h.available.join(', ')) : 'nobody'}">
       <span class="party-hour-label">${String(h.utcHour).padStart(2, '0')}</span>
       <span class="party-hour-count">${n}</span>
     </div>`;
@@ -285,12 +285,12 @@ function renderPrompts(prompts) {
 /** The board as Slack-ready mrkdwn — the format it actually gets pasted into. */
 function summaryText() {
   const data = analyze(members);
-  const lines = [`*Party — ${members.length} sheet${members.length > 1 ? 's' : ''}*`, ''];
+  const lines = [`*Party: ${members.length} sheet${members.length > 1 ? 's' : ''}*`, ''];
 
   lines.push('*Roster*');
   for (const m of members) {
     const meta = [m.rpgClass, m.role, m.place, m.offsetLabel].filter(Boolean).join(' · ');
-    lines.push(`• ${m.name} — ${meta}`);
+    lines.push(`• ${m.name}: ${meta}`);
   }
 
   const { best, window: win, unknown, placed } = data.overlap;
@@ -302,7 +302,7 @@ function summaryText() {
   if (data.ground.shared.length) {
     lines.push('', '*Common ground*');
     for (const r of data.ground.shared.slice(0, 12)) {
-      lines.push(`• ${r.label} — ${r.people.join(', ')}`);
+      lines.push(`• ${r.label}: ${r.people.join(', ')}`);
     }
   }
 
@@ -317,7 +317,7 @@ async function copySummary() {
   const text = summaryText();
   try {
     await navigator.clipboard.writeText(text);
-    showToast('Summary copied — paste it into Slack');
+    showToast('Summary copied: paste it into Slack');
   } catch {
     setError('Clipboard blocked by this browser. The summary is in the console.');
     console.log(text);

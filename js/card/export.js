@@ -111,7 +111,7 @@ export async function downloadPng(cardEl, name, scale = 2) {
     showToast(`Downloaded at ${scale}× (${cardEl.offsetWidth * scale}px wide)`);
   } catch (err) {
     console.error(err);
-    showToast('Export failed — try a different layout');
+    showToast('Export failed: try a different layout');
   }
 }
 
@@ -120,9 +120,9 @@ export async function copyPng(cardEl, scale = 2) {
   try {
     const blob = await cardToPngBlob(cardEl, scale);
     await navigator.clipboard.write([new ClipboardItem({ 'image/png': blob })]);
-    showToast('Card copied — paste it into Slack');
+    showToast('Card copied: paste it into Slack');
   } catch {
-    showToast('Clipboard blocked — use Download instead');
+    showToast('Clipboard blocked: use Download instead');
   }
 }
 
@@ -139,7 +139,7 @@ export async function sharePng(cardEl, name, scale = 2) {
     showToast('Card copied to clipboard');
   } catch (err) {
     if (err?.name === 'AbortError') return; // user dismissed the share sheet
-    showToast('Sharing not supported here — use Download');
+    showToast('Sharing not supported here: use Download');
   }
 }
 

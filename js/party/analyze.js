@@ -199,7 +199,7 @@ export function commonGround(members) {
     }
   }
 
-  // Category first, then headcount. Sorting by headcount alone put "PC — everyone"
+  // Category first, then headcount. Sorting by headcount alone put "PC: everyone"
   // above a game three people named, which is the opposite of the claim in the
   // CATEGORIES comment: a platform tick is a coincidence, a shared title is a
   // conversation. Category rank also fixes the group order the UI renders in.
@@ -271,7 +271,7 @@ export function icebreakers(members, { shared, solo }, gap) {
   // lines get read out loud.
   for (const row of shared.filter(r => r.category !== 'platforms').slice(0, 3)) {
     const both = row.people.length === 2 ? 'both' : 'all';
-    out.push(`${joinNames(row.people)} ${both} listed **${row.label}** — find out who got furthest.`);
+    out.push(`${joinNames(row.people)} ${both} listed **${row.label}**, find out who got furthest.`);
   }
 
   const withTruths = members.filter(m => (m.sheet.intro.statements?.length || 0) >= 3
@@ -288,7 +288,7 @@ export function icebreakers(members, { shared, solo }, gap) {
   const learners = members.filter(m => m.sheet.intro.currentlyLearning);
   if (learners.length >= 2) {
     const both = learners.length === 2 ? 'are both' : 'are all';
-    out.push(`${joinNames(learners.map(m => m.name))} ${both} learning something right now — swap notes.`);
+    out.push(`${joinNames(learners.map(m => m.name))} ${both} learning something right now, swap notes.`);
   } else if (learners.length === 1) {
     out.push(`${learners[0].name} is learning ${learners[0].sheet.intro.currentlyLearning}. Ask how it is going.`);
   }
@@ -303,7 +303,7 @@ export function icebreakers(members, { shared, solo }, gap) {
   }
 
   if (!out.length) {
-    out.push('Not much to go on yet — add another sheet or two and the overlaps show up.');
+    out.push('Not much to go on yet: add another sheet or two and the overlaps show up.');
   }
   return out;
 }

@@ -94,7 +94,7 @@ Auth uses **Clerk** (publishable key in a `<meta name="clerk-publishable-key">`)
 
 ### 4. Canvas card export
 
-The payoff is `js/card.js → generateCard(state)`: an async canvas render (800px wide, dynamic height ≥900px) drawing background, header, stat boxes, body sections, socials, a collection grid, footer, and the chosen avatar. Export is PNG (`toDataURL`) or PDF (lazy jsPDF). All remote images (RAWG/TMDB/Jikan via the CF Worker) must load `crossOrigin: anonymous` or `toDataURL` throws. The card has its own theme system (`js/themes.js`: dark, light, cyberpunk, minimal, sunset, forest) independent of the site chrome — these themes style the **exported card only**, not the app UI.
+The payoff is `js/card.js → generateCard(state)`: an async canvas render (800px wide, dynamic height ≥900px) drawing background, header, stat boxes, body sections, socials, a collection grid, footer, and the chosen avatar. Export is PNG (`toDataURL`) or PDF (lazy jsPDF). All remote images (RAWG/TMDB/Jikan via the CF Worker) must load `crossOrigin: anonymous` or `toDataURL` throws. The card has its own theme system (`js/themes.js`: dark, light, cyberpunk, minimal, sunset, forest) independent of the site chrome. These themes style the **exported card only**, not the app UI.
 
 ## Backend note
 

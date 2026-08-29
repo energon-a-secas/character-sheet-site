@@ -437,7 +437,7 @@ async function loadUserSheets() {
     const sheets = await convex.query(api.sheets.list, {});
     const select = document.getElementById('sheetSelect');
     if (!select) return;
-    select.innerHTML = '<option value="">— select a sheet —</option>';
+    select.innerHTML = '<option value="">select a sheet,</option>';
     sheets.forEach(s => {
       const opt = document.createElement('option');
       opt.value = s._id;
@@ -664,7 +664,7 @@ window.deleteCurrentSheet = async function() {
 
 window.startOver = function() {
   const hasData = state.identity.name || state.gaming.topGames.length || state.anime.topAnime.length || state.movies.topMovies.length || state.hobbies.selected.length;
-  if (!hasData || confirm('Start over? Your answers will be cleared — you can always roll the dice again.')) {
+  if (!hasData || confirm('Start over? Your answers will be cleared: you can always roll the dice again.')) {
     resetState(state);
     render();
     scrollTop();

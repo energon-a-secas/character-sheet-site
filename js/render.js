@@ -134,7 +134,7 @@ export function renderSection(animate) {
   html += '<div id="section-comment" class="section-comment" hidden></div>';
   html += '</div>';
   if (sec.key === 'intro') {
-    html += `<div class="skip-intro-row"><button class="skip-intro-btn" onclick="skipIntro()">Skip — jump to the fun stuff →</button></div>`;
+    html += `<div class="skip-intro-row"><button class="skip-intro-btn" onclick="skipIntro()">Skip, jump to the fun stuff →</button></div>`;
   }
   container.innerHTML = html;
 }
@@ -157,12 +157,12 @@ function renderIdentity() {
     </div>
     <div class="field-group">
       <label class="field-label">When are you most human?</label>
-      <div class="field-hint">Serious or silly — e.g. &quot;after coffee&quot; or &quot;probably sleeping&quot;</div>
+      <div class="field-hint">Serious or silly: e.g. &quot;after coffee&quot; or &quot;probably sleeping&quot;</div>
       <input class="field-input" type="text" value="${escHtml(d.bestTimeToPresent)}" data-field="identity.bestTimeToPresent" placeholder="e.g. When my coffee kicks in (UTC-3)" maxlength="120">
     </div>
     <div class="field-group">
       <label class="field-label">Where can folks find you?</label>
-      <div class="field-hint">Pick platforms and drop your handle — for anyone who wants to connect</div>
+      <div class="field-hint">Pick platforms and drop your handle, for anyone who wants to connect</div>
       <div class="platform-grid">
         ${PLATFORMS.map(p => {
           const existing = d.handles.find(h => h.platform === p.id);
@@ -175,7 +175,7 @@ function renderIdentity() {
     </div>
     <div class="field-group">
       <label class="field-label">A line or two for whoever's presenting</label>
-      <div class="field-hint">Helps tailor the vibe — short bio, what you do, what you're into.</div>
+      <div class="field-hint">Helps tailor the vibe, short bio, what you do, what you're into.</div>
       <textarea class="field-input" data-field="identity.description" placeholder="e.g. Backend dev, coffee addict, always has a book" maxlength="300">${escHtml(d.description)}</textarea>
     </div>`;
   return html;
@@ -309,8 +309,8 @@ function renderGoldSaint(d) {
     ? 'What\'s your zodiac sign?'
     : 'Favourite Gold Saint?';
   const hint = mode === 'zodiac'
-    ? 'The twelve Gold Saints guard the twelve houses of the zodiac — one each. Pick your sign and we\'ll tell you whose armour you\'d be wearing.'
-    : 'Saint Seiya / Knights of the Zodiac — the twelve of the Sanctuary.';
+    ? 'The twelve Gold Saints guard the twelve houses of the zodiac. One each. Pick your sign and we\'ll tell you whose armour you\'d be wearing.'
+    : 'Saint Seiya / Knights of the Zodiac: the twelve of the Sanctuary.';
 
   let chips = '';
   if (mode !== 'lost') {
@@ -351,7 +351,7 @@ function renderGoldSaint(d) {
       ${reveal}
       ${lostNote}
       <div class="escape-row">
-        <button class="escape-btn${mode === 'zodiac' ? ' active' : ''}" data-escape="legends.goldSaintMode" data-val="zodiac">I don't know this one — just ask my sign</button>
+        <button class="escape-btn${mode === 'zodiac' ? ' active' : ''}" data-escape="legends.goldSaintMode" data-val="zodiac">I don't know this one, just ask my sign</button>
         <button class="escape-btn${mode === 'lost' ? ' active' : ''}" data-escape="legends.goldSaintMode" data-val="lost">No idea what any of this is</button>
       </div>
     </div>`;
@@ -378,7 +378,7 @@ function renderLegends() {
 
   let html = pillRow(
     'How deep does the retro go?',
-    'Sets expectations for everything below — "completely lost" is a real answer.',
+    'Sets expectations for everything below: "completely lost" is a real answer.',
     'legends.retroDepth', RETRO_DEPTH,
   );
 
@@ -387,7 +387,7 @@ function renderLegends() {
   html += `
     <div class="field-group">
       <label class="field-label">Favourite Gundam?</label>
-      <div class="field-hint">Pick the mobile suit. Choose carefully — one of these is not a Gundam.</div>
+      <div class="field-hint">Pick the mobile suit. Choose carefully. One of these is not a Gundam.</div>
       <div class="gundam-grid">
         ${GUNDAMS.map(g => `
           <button class="gundam-chip${d.gundam === g.id ? ' active' : ''}${g.impostor ? ' gundam-chip--impostor' : ''}" data-choice="legends.gundam" data-val="${g.id}">
@@ -400,7 +400,7 @@ function renderLegends() {
   html += pillRow('What power-up are you running on today?', 'Dragon Ball, but for Mondays.', 'legends.dbForm', DB_FORMS);
   html += pillRow('Autobot or Decepticon?', '', 'legends.tfFaction', TF_FACTIONS);
 
-  html += textRow('First console or computer you ever touched', 'The one that started it — borrowed cousins\' consoles count.', 'legends.firstMachine', 'Family Game, Sega Genesis, a beige 486...', 80);
+  html += textRow('First console or computer you ever touched', 'The one that started it: borrowed cousins\' consoles count.', 'legends.firstMachine', 'Family Game, Sega Genesis, a beige 486...', 80);
   html += textRow('An opening theme you still know by heart', 'Bonus points if you know it in a dubbed language.', 'legends.openingTheme', 'Cha-La Head-Cha-La, Pegasus Fantasy...', 100);
   html += textRow('Your Saturday-morning hero', 'Cartoon, tokusatsu, or whatever was on where you grew up.', 'legends.saturdayHero', 'He-Man, Sailor Moon, El Chapulín Colorado...', 80);
   html += textRow('The arcade game that ate your coins', '', 'legends.arcadeGame', 'Metal Slug, Street Fighter II, Marvel vs Capcom...', 80);
@@ -565,7 +565,7 @@ function renderWildcards() {
   const truthLieHtml = `
     <div class="story-group" style="margin-top:var(--space-6)">
       <div class="story-group-label">&#x1F3B2; Two Truths, One Lie</div>
-      <div class="field-hint" style="margin-bottom:var(--space-4)">Write two things that are true and one sneaky lie — the crowd guesses which is which.</div>
+      <div class="field-hint" style="margin-bottom:var(--space-4)">Write two things that are true and one sneaky lie. The crowd guesses which is which.</div>
       <div class="truth-lie-section">
         <div class="truth-card">
           <div class="statement-badge">&#x2713; Truth</div>
@@ -596,7 +596,7 @@ export function memePreviewHtml(url) {
   const media = classifyMediaUrl(url);
   if (!media) {
     return (url || '').trim()
-      ? '<div class="meme-preview meme-preview--empty">Not a link yet — needs to start with http:// or https://</div>'
+      ? '<div class="meme-preview meme-preview--empty">Not a link yet, needs to start with http:// or https://</div>'
       : '';
   }
   if (media.kind === 'link') {
@@ -609,7 +609,7 @@ export function memePreviewHtml(url) {
     <img class="meme-thumb" src="${escHtml(media.thumb)}" alt="" loading="lazy"
          onerror="this.closest('.meme-preview').classList.add('meme-preview--broken')">
     <span class="meme-kind">${escHtml(media.label)}</span>
-    <span class="meme-broken-note">Couldn't load that image — the link still works on your card.</span>
+    <span class="meme-broken-note">Couldn't load that image. The link still works on your card.</span>
   </div>`;
 }
 
@@ -622,7 +622,7 @@ function renderExtras() {
         : 'One more, if the first one didn\'t cover it'}</label>
       <div class="field-hint">${i === 0
         ? 'YouTube link or a direct image URL shows a preview. Anything else just links.'
-        : 'Optional — some people are a two-meme situation.'}</div>
+        : 'Optional, some people are a two-meme situation.'}</div>
       <input class="field-input" type="url" value="${escHtml(m.url)}" data-field="extras.memes.${i}.url" data-preview="meme-preview-${i}" placeholder="https://youtu.be/... or https://.../meme.jpg" maxlength="300">
       <div class="meme-preview-slot" id="meme-preview-${i}">${memePreviewHtml(m.url)}</div>
       <input class="field-input" type="text" value="${escHtml(m.note)}" data-field="extras.memes.${i}.note" placeholder="What is it / why it matters" maxlength="120" style="margin-top:var(--space-2)">

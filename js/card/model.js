@@ -104,7 +104,7 @@ export function legendFacts(s) {
       label: 'Mobile suit',
       // The joke only lands if the card is in on it. Printing "Optimus Prime"
       // under "Mobile suit" with a straight face reads as a data error.
-      value: gundam.impostor ? `${gundam.name} — which is not a Gundam` : gundam.name,
+      value: gundam.impostor ? `${gundam.name}: which is not a Gundam` : gundam.name,
     });
   }
 

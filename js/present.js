@@ -40,9 +40,9 @@ export function generateScript(s) {
 
   const lines = [];
 
-  lines.push(`# ${name} — Presenter Script`);
+  lines.push(`# ${name}: Presenter Script`);
   lines.push('');
-  lines.push('> Copy this script to your notes app. Read naturally — don\'t read it word for word.');
+  lines.push('> Copy this script to your notes app. Read naturally, don\'t read it word for word.');
   lines.push('');
   lines.push('---');
   lines.push('');
@@ -55,7 +55,7 @@ export function generateScript(s) {
   if (jobPart) introParts.push(jobPart);
   if (location) introParts.push(`based in ${location}`);
   if (prevCompany) introParts.push(`previously at ${prevCompany}`);
-  lines.push(introParts.join(' — ') + '.');
+  lines.push(introParts.join(', ') + '.');
   lines.push('');
   lines.push(`*RPG class: **${rpgClass}***`);
   lines.push('');
@@ -126,7 +126,7 @@ export function generateScript(s) {
   if (legends.length) {
     lines.push('## ⚔️ Legends');
     lines.push('');
-    lines.push('*Childhood canon — reliable icebreaker territory:*');
+    lines.push('*Childhood canon: reliable icebreaker territory:*');
     lines.push('');
     legends.forEach(l => lines.push(`- **${l.label}:** ${l.value}`));
     lines.push('');
@@ -191,7 +191,7 @@ export function downloadPresentation(s) {
   a.click();
   document.body.removeChild(a);
   setTimeout(() => URL.revokeObjectURL(url), 5000);
-  showToast('Presentation ready — open the downloaded file!');
+  showToast('Presentation ready: open the downloaded file!');
 }
 
 function buildHTML(s) {
@@ -739,7 +739,7 @@ function guess(idx) {
   voted = true;
 
   const hint = document.getElementById('game-hint');
-  hint.textContent = card.dataset.lie === '1' ? '🎯 You guessed it — reveal to confirm!' : '🤔 Hmm... are you sure? Reveal to find out!';
+  hint.textContent = card.dataset.lie === '1' ? '🎯 You guessed it, reveal to confirm!' : '🤔 Hmm... are you sure? Reveal to find out!';
   document.getElementById('reveal-btn').style.display = 'inline-flex';
 }
 

@@ -40,7 +40,7 @@ const ARCADE_GAMES = [
 
 const MEETING_CHAMPIONS = [
   'Optimus Prime, obviously', 'Vegeta (he would not tolerate this)',
-  'Shaka of Virgo — silent and devastating', 'Batman', 'Mazinger Z',
+  'Shaka of Virgo: silent and devastating', 'Batman', 'Mazinger Z',
   'Whoever is closest to the mute button',
 ];
 
@@ -161,7 +161,7 @@ const PREV_COMPANIES = ['Airbnb', 'Shopify', 'Mercado Libre', 'Rappi', 'Globant'
 const CITIES = ['Santiago', 'Buenos Aires', 'São Paulo', 'Berlin', 'Toronto', 'Remote', 'Mexico City', 'Bogotá'];
 
 const CAREER_HIGHLIGHTS = [
-  'Led the migration of a monolith to microservices — took 6 months and aged me 10 years.',
+  'Led the migration of a monolith to microservices, took 6 months and aged me 10 years.',
   'Built a feature that reduced churn by 15%. Finally got to say "I shipped this" at a dinner party.',
   'Grew the team from 3 to 12 engineers while keeping the CI green.',
   'Launched a product used by 500k people. Still scared every deploy.',
@@ -171,7 +171,7 @@ const CAREER_HIGHLIGHTS = [
 const MOTTOS = [
   'Ship it and iterate. Done is better than perfect.',
   'Be the engineer you needed when you were starting out.',
-  'Strong opinions, loosely held — especially about tabs vs spaces.',
+  'Strong opinions, loosely held: especially about tabs vs spaces.',
   'Vibes are a valid architecture consideration.',
   'If it works, don\'t touch it. If it doesn\'t, blame DNS.',
 ];
@@ -185,7 +185,7 @@ const UNKNOWN_FACTS = [
 ];
 
 const LEARNING_NOW = [
-  'Rust — because apparently I enjoy suffering.',
+  'Rust: because apparently I enjoy suffering.',
   'Piano. Turns out muscle memory applies to both keyboards.',
   'How to actually disconnect on weekends.',
   'Cooking Thai food. The fish sauce is non-negotiable.',

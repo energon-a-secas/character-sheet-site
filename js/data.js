@@ -1,12 +1,12 @@
 export const SECTIONS = [
-  { key: 'identity',  title: 'Identity',           glow: '--glow-identity',  flavor: 'Who you are — and how you want to be introduced.' },
-  { key: 'intro',     title: 'Your Story',         glow: '--glow-intro',     flavor: 'The 30-second intro — your job, your vibe, your city.' },
+  { key: 'identity',  title: 'Identity',           glow: '--glow-identity',  flavor: 'Who you are: and how you want to be introduced.' },
+  { key: 'intro',     title: 'Your Story',         glow: '--glow-intro',     flavor: 'The 30-second intro: your job, your vibe, your city.' },
   { key: 'gaming',    title: 'Gaming',             glow: '--glow-gaming',    flavor: 'What worlds have you conquered? Presenters: safe small-talk territory.' },
-  { key: 'anime',     title: 'Anime',              glow: '--glow-anime',     flavor: 'The culture check — sub or dub, we\'re not judging.' },
-  { key: 'legends',   title: 'Legends',            glow: '--glow-legends',   flavor: 'Saturday-morning canon. No anime credentials required — most of this was just what was on TV.' },
+  { key: 'anime',     title: 'Anime',              glow: '--glow-anime',     flavor: 'The culture check: sub or dub, we\'re not judging.' },
+  { key: 'legends',   title: 'Legends',            glow: '--glow-legends',   flavor: 'Saturday-morning canon. No anime credentials required. Most of this was just what was on TV.' },
   { key: 'movies',    title: 'Movies & Series',    glow: '--glow-movies',    flavor: 'What stories shaped you? Presenters: great for references and icebreakers.' },
   { key: 'hobbies',   title: 'Hobbies',            glow: '--glow-hobbies',   flavor: 'Side quests IRL. Presenters: conversation starters.' },
-  { key: 'wildcards', title: 'Hot Takes & Games',  glow: '--glow-wildcards', flavor: 'Unpopular opinions, guilty pleasures, and one sneaky lie — who can guess it?' },
+  { key: 'wildcards', title: 'Hot Takes & Games',  glow: '--glow-wildcards', flavor: 'Unpopular opinions, guilty pleasures, and one sneaky lie, who can guess it?' },
   { key: 'extras',    title: 'Extras',             glow: '--glow-extras',    flavor: 'Meme of choice and anything else you want on your card.' },
 ];
 

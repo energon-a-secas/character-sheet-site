@@ -12,7 +12,7 @@
     feature. card.html and party.html keep the tight allowlist on purpose: there
     you are viewing *someone else's* sheet, and a wildcard would let a shared link
     make your browser call a host its sender chose. connect-src stays narrow on
-    both — i.ytimg.com is listed because the card inlines YouTube thumbnails for
+    both: i.ytimg.com is listed because the card inlines YouTube thumbnails for
     export, and that is a single known host, not a wildcard.
   -->
   <!-- Clerk: Dashboard → User & Authentication → enable Email and Username so people can sign in with either. -->
@@ -57,7 +57,7 @@
         <img src="https://cdn.neorgon.org/v1.0.0/energon-classic-logo.png" class="header-logo-img" alt="">
         <div class="header-title-wrap">
         <h1>Character Sheet</h1>
-        <div class="header-subtitle">About you — and how to present to you.</div>
+        <div class="header-subtitle">About you: and how to present to you.</div>
       
         </div>
       </a>
@@ -100,7 +100,7 @@
           <span class="auth-username" id="authDisplayUser"></span>
           <div id="neorgon-user-mount" class="neorgon-clerk-mount"></div>
           <div class="legacy-link-card" id="legacyLinkSection" hidden>
-            <p class="legacy-link-hint">Had a password-only Neorgon account? Link it once — your password is checked and not stored in the mapping.</p>
+            <p class="legacy-link-hint">Had a password-only Neorgon account? Link it once, your password is checked and not stored in the mapping.</p>
             <div class="legacy-link-fields">
               <label class="sr-only" for="legacyLinkUser">Legacy username</label>
               <input type="text" id="legacyLinkUser" class="legacy-link-input" autocomplete="username" placeholder="Legacy username">
@@ -127,7 +127,7 @@
       <!-- Sheets bar (visible when logged in) -->
       <div class="sheets-bar" id="sheetsBar" hidden>
         <select class="sheet-select" id="sheetSelect" onchange="loadSheet(this.value)">
-          <option value="">— select a sheet —</option>
+          <option value="">select a sheet,</option>
         </select>
         <button class="btn btn-sm" onclick="createNewSheet()">+ New</button>
         <button class="btn btn-sm btn-primary" onclick="saveCurrentSheet()">Save</button>
@@ -153,7 +153,7 @@
       <div class="nav-buttons" id="nav-buttons">
         <button class="btn btn-secondary" id="btn-prev" onclick="prevSection()">Back</button>
         <div class="nav-center">
-          <button class="btn btn-random" id="btn-random" onclick="randomFill()" title="Roll the dice — try random answers">Randomize</button>
+          <button class="btn btn-random" id="btn-random" onclick="randomFill()" title="Roll the dice, try random answers">Randomize</button>
           <button class="btn btn-restart" id="btn-restart" onclick="startOver()" title="Clear and start over">Start Over</button>
         </div>
         <button class="btn btn-primary" id="btn-next" onclick="nextSection()">Next</button>
@@ -218,7 +218,7 @@
 
           <div class="share-block">
             <div class="card-control-label">Share a live link</div>
-            <p class="card-control-hint">Opens a read-only card. Nothing is uploaded — the whole sheet travels in the link, and the answer to your two-truths is stripped out before encoding.</p>
+            <p class="card-control-hint">Opens a read-only card. Nothing is uploaded. The whole sheet travels in the link, and the answer to your two-truths is stripped out before encoding.</p>
             <div class="share-row">
               <input type="text" id="share-url" class="share-url" readonly aria-label="Shareable card link">
               <button class="btn btn-sm btn-primary" data-card-action="copy-link">Copy</button>
@@ -230,7 +230,7 @@
 
           <div class="share-block">
             <div class="card-control-label">Compare with your team</div>
-            <p class="card-control-hint">The party board takes several cards and finds the overlaps — shared games and shows, the hours you are all reachable, and what to ask each other first.</p>
+            <p class="card-control-hint">The party board takes several cards and finds the overlaps, shared games and shows, the hours you are all reachable, and what to ask each other first.</p>
             <div class="share-row">
               <a class="btn btn-sm btn-secondary" href="party.html" target="_blank" rel="noopener">Open the party board</a>
             </div>

@@ -317,7 +317,7 @@ console.log(`\nconsole errors: ${errors.length}`);
 for (const e of errors) console.log(`  ${e}`);
 
 const failed = steps.filter(s => !s.ok).length + errors.length;
-console.log(`\n${failed ? 'FAIL' : 'PASS'} — ${steps.filter(s => !s.ok).length} step(s), ${errors.length} console error(s)`);
+console.log(`\n${failed ? 'FAIL' : 'PASS'}, ${steps.filter(s => !s.ok).length} step(s), ${errors.length} console error(s)`);
 
 await browser.close();
 process.exit(failed ? 1 : 0);

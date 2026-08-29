@@ -126,7 +126,7 @@ export const CARD_LAYOUTS = {
   slack: {
     id: 'slack',
     name: 'Wide (Slack)',
-    description: '1600×900 — fills a Slack or Teams preview.',
+    description: '1600×900: fills a Slack or Teams preview.',
     width: 1600,
     height: 900,
     fit: 'fixed',
@@ -154,7 +154,7 @@ export const CARD_LAYOUTS = {
   compact: {
     id: 'compact',
     name: 'Compact',
-    description: 'Just the essentials — 600×800.',
+    description: 'Just the essentials: 600×800.',
     width: 600,
     height: 800,
     fit: 'fixed',

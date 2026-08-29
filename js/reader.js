@@ -22,7 +22,7 @@ function icebreaker(sheet, model) {
   const candidates = [];
 
   if (getTwoTruths(sheet).length) {
-    candidates.push(`Guess which of the three statements ${name} made up — then ask.`);
+    candidates.push(`Guess which of the three statements ${name} made up, then ask.`);
   }
   if (sheet.intro.currentlyLearning) {
     candidates.push(`${name} is currently learning ${sheet.intro.currentlyLearning}. Ask how it is going.`);
@@ -66,7 +66,7 @@ async function main() {
   $('reader-icebreaker').textContent = icebreaker(sheet, model);
 
   const name = sheet.identity.name || 'character';
-  document.title = `${name} — Character Sheet`;
+  document.title = `${name}: Character Sheet`;
 
   const images = await inlineImages(collectImageUrls(model));
   if (images.size) renderCard(cardEl, model, sheet.cardConfig, images);

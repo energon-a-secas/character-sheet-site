@@ -133,7 +133,7 @@ record('zodiac framing prints the same value', saint.zodiacMode === saint.saintM
 // this is the only thing stopping a withdrawn answer reaching the card.
 record('lost mode suppresses a stale pick', saint.lostMode === null, String(saint.lostMode));
 record('unknown saint id is ignored, not printed raw', saint.bogusSaint === null, String(saint.bogusSaint));
-record('the impostor is labelled as one', saint.impostor === 'Optimus Prime — which is not a Gundam', String(saint.impostor));
+record('the impostor is labelled as one', saint.impostor === 'Optimus Prime: which is not a Gundam', String(saint.impostor));
 record('a real suit gets no editorial', saint.realSuit === 'Wing Zero', String(saint.realSuit));
 record('empty legends produce no facts', saint.emptyCount === 0, `${saint.emptyCount}`);
 
@@ -318,5 +318,5 @@ console.log(`\nconsole errors: ${errors.length}`);
 errors.forEach(e => console.log('  ' + e));
 
 const ok = failed === 0 && errors.length === 0;
-console.log(`\n${ok ? 'PASS' : 'FAIL'} — ${failed} step(s), ${errors.length} console error(s)`);
+console.log(`\n${ok ? 'PASS' : 'FAIL'}, ${failed} step(s), ${errors.length} console error(s)`);
 process.exit(ok ? 0 : 1);

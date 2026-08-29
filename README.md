@@ -2,7 +2,7 @@
 
 # Character Sheet
 
-**Know Your Party** — RPG-style personality interview. Answer nine sections about your gaming, anime, retro-cartoon and hobby taste, get an RPG class, then export a card worth actually sharing — and compare cards with your team.
+**Know Your Party**: RPG-style personality interview. Answer nine sections about your gaming, anime, retro-cartoon and hobby taste, get an RPG class, then export a card worth actually sharing, and compare cards with your team.
 
 [![Live][badge-site]][url-site]
 [![HTML5][badge-html]][url-html]
@@ -30,35 +30,35 @@
 
 ## Overview
 
-**Character Sheet** is a personality interview that builds an RPG-style character card from your answers — the thing you hand round in a first meeting instead of saying your job title twice. Nine themed sections, an auto-assigned RPG class, and an export designed to survive being pasted into Slack.
+**Character Sheet** is a personality interview that builds an RPG-style character card from your answers. The thing you hand round in a first meeting instead of saying your job title twice. Nine themed sections, an auto-assigned RPG class, and an export designed to survive being pasted into Slack.
 
 **Live:** [charactersheet.neorgon.com](https://charactersheet.neorgon.com/)
 
 ## Features
 
-- **Nine-section interview** — Identity, Your Story, Gaming, Anime, Legends, Movies & Series, Hobbies, Hot Takes, Extras, with live per-section progress
-- **Legends** — the Saturday-morning canon, with no anime credentials required. Favourite Gold Saint (Saint Seiya), favourite Gundam, Dragon Ball power-up, Autobot or Decepticon, first console, the opening theme you still know by heart. Don't know Saint Seiya? Answer by birthday instead and it tells you which Gold Saint that makes you
-- **Meme slots with previews** — paste a YouTube link or an image URL and see the thumbnail, in the interview and on the exported card
-- **Media search** — real games, anime and films via a Cloudflare Worker proxying RAWG, Jikan and TMDB; cover art and character portraits land on the card
-- **RPG class auto-assignment** — your answers pick the class (Digital Ronin, Screen Sage, Pixel Paladin, and six more)
-- **The card is real HTML** — themes are CSS custom properties, layouts are CSS grid and multicol. The element on screen *is* the element exported, so a preview that looks right cannot produce a wrong PNG
-- **Five size presets** — Portrait (grows to fit), Wide 1600×900 for a Slack or Teams preview, Square 1080×1080, A4, and Compact. Fixed sizes drop the lowest-priority sections by measured overflow and say what they dropped
-- **PNG at 1×, 2× or 3×** — rasterised from an SVG `foreignObject`, a genuine re-render at scale rather than an upscaled bitmap
-- **Vector PDF** — printed through `@media print`, so the text stays selectable
-- **Share link + QR** — the whole sheet compresses into the URL fragment, so nothing is uploaded and the read-only card page works from the link alone. The two-truths answer is stripped *at the encoder*, not merely unrendered
-- **Presenter deck and script** — a standalone HTML slide deck and a Markdown script, both agreeing with the card on the shuffled two-truths order, with the answer folded away
-- **Party board** — drop in several cards and it finds the overlaps: titles more than one person listed, the hours everyone is actually reachable, class composition, and icebreakers that name the real game and the real people
-- **Randomize button** — fills a plausible sheet for quick testing
+- **Nine-section interview**: Identity, Your Story, Gaming, Anime, Legends, Movies & Series, Hobbies, Hot Takes, Extras, with live per-section progress
+- **Legends**: the Saturday-morning canon, with no anime credentials required. Favourite Gold Saint (Saint Seiya), favourite Gundam, Dragon Ball power-up, Autobot or Decepticon, first console, the opening theme you still know by heart. Don't know Saint Seiya? Answer by birthday instead and it tells you which Gold Saint that makes you
+- **Meme slots with previews**: paste a YouTube link or an image URL and see the thumbnail, in the interview and on the exported card
+- **Media search**: real games, anime and films via a Cloudflare Worker proxying RAWG, Jikan and TMDB; cover art and character portraits land on the card
+- **RPG class auto-assignment**: your answers pick the class (Digital Ronin, Screen Sage, Pixel Paladin, and six more)
+- **The card is real HTML**: themes are CSS custom properties, layouts are CSS grid and multicol. The element on screen *is* the element exported, so a preview that looks right cannot produce a wrong PNG
+- **Five size presets**: Portrait (grows to fit), Wide 1600×900 for a Slack or Teams preview, Square 1080×1080, A4, and Compact. Fixed sizes drop the lowest-priority sections by measured overflow and say what they dropped
+- **PNG at 1×, 2× or 3×**: rasterised from an SVG `foreignObject`, a genuine re-render at scale rather than an upscaled bitmap
+- **Vector PDF**: printed through `@media print`, so the text stays selectable
+- **Share link + QR**: the whole sheet compresses into the URL fragment, so nothing is uploaded and the read-only card page works from the link alone. The two-truths answer is stripped *at the encoder*, not merely unrendered
+- **Presenter deck and script**: a standalone HTML slide deck and a Markdown script, both agreeing with the card on the shuffled two-truths order, with the answer folded away
+- **Party board**: drop in several cards and it finds the overlaps: titles more than one person listed, the hours everyone is actually reachable, class composition, and icebreakers that name the real game and the real people
+- **Randomize button**: fills a plausible sheet for quick testing
 
 ## Party board
 
 `party.html` takes card links, `.json` sheets, or the sheet in your own browser and reports where a team overlaps:
 
-- **Timezone coverage** — a 24-cell UTC grid shaded by how many people are inside a 09:00–18:00 local window, plus the longest run where the most people are free. Anyone without a timezone is named as uncounted rather than quietly dropped
-- **Common ground** — shared titles, hobbies and genres, ranked so a game three people named outranks a platform everyone ticked. A row needs two people by definition
-- **Only one of you** — titles nobody else listed, which is the easiest thing to ask about
-- **Class composition** and **Start here** — prompts built from the roster, each one checkable against a real sheet
-- **Copy summary** — the board as Slack mrkdwn, and **Copy roster link** — the whole roster in one fragment
+- **Timezone coverage**: a 24-cell UTC grid shaded by how many people are inside a 09:00–18:00 local window, plus the longest run where the most people are free. Anyone without a timezone is named as uncounted rather than quietly dropped
+- **Common ground**: shared titles, hobbies and genres, ranked so a game three people named outranks a platform everyone ticked. A row needs two people by definition
+- **Only one of you**: titles nobody else listed, which is the easiest thing to ask about
+- **Class composition** and **Start here**: prompts built from the roster, each one checkable against a real sheet
+- **Copy summary**: the board as Slack mrkdwn, and **Copy roster link**. The whole roster in one fragment
 
 Rosters are not uploaded either. Nothing on this board reads anybody's two-truths answer.
 
@@ -116,7 +116,7 @@ make serve    # http://localhost:8814
 make kill     # stop it
 ```
 
-ES modules require an HTTP server — `file://` will not work. No install and no keys are needed: media search calls the deployed Worker, which holds the API keys server-side. Convex-backed sheet saving is optional (`npm install && npx convex dev`).
+ES modules require an HTTP server: `file://` will not work. No install and no keys are needed: media search calls the deployed Worker, which holds the API keys server-side. Convex-backed sheet saving is optional (`npm install && npx convex dev`).
 
 ---
 

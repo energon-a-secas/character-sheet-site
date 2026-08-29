@@ -134,7 +134,7 @@ const COMMENT_RULES = [
   {
     match: (f, s) => f === 'legends.goldSaintMode' && s.legends.goldSaintMode === 'zodiac',
     messages: [
-      "Fine — birthday it is. We'll do the rest.",
+      "Fine: birthday it is. We'll do the rest.",
       "Nobody has to know you answered the easy version.",
     ],
   },

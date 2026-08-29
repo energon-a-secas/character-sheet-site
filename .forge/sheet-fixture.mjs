@@ -53,7 +53,7 @@ export const SHEET = {
     openingTheme: 'Pegasus Fantasy, in Latin Spanish',
     saturdayHero: 'El Chapulín Colorado',
     arcadeGame: 'Metal Slug 3',
-    meetingChampion: 'Shaka of Virgo — silent and devastating',
+    meetingChampion: 'Shaka of Virgo: silent and devastating',
   },
   // Deliberately left in the *pre-migration* shape. This is the only fixture that
   // exercises js/sheet.js → migrateSheet, and the checks below assert the meme

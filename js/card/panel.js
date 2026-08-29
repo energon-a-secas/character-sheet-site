@@ -229,7 +229,7 @@ export async function copyShareLink() {
   if (!shareUrl) await refreshShare();
   try {
     await navigator.clipboard.writeText(shareUrl);
-    showToast('Link copied — the answer to your lie is not in it');
+    showToast('Link copied: the answer to your lie is not in it');
   } catch {
     $('share-url')?.select();
     showToast('Press ⌘C to copy the selected link');
