@@ -114,7 +114,7 @@ function columnsHtml(b) {
 function quoteHtml(b) {
   return `<figure class="cc-block cc-quote" data-block="${escHtml(b.id)}">
     <blockquote>${escHtml(b.text)}</blockquote>
-    ${b.source ? `<figcaption>— ${escHtml(b.source)}</figcaption>` : ''}
+    ${b.source ? `<figcaption>${escHtml(b.source)}</figcaption>` : ''}
   </figure>`;
 }
 
