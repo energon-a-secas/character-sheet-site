@@ -604,6 +604,12 @@ function buildDialog(prefix) {
   dialog.neoParts = { title, lede, mark, close, body, foot };
 
   close.addEventListener('click', () => dialog.close());
+  // Escape is the dialog's own close request, and it closes the dialog either way.
+  // Stopping it here keeps a site's document-level Escape handler from also closing
+  // whatever the dialog was opened over (buyhacks' product detail, memes' lightbox).
+  dialog.addEventListener('keydown', (event) => {
+    if (event.key === 'Escape') event.stopPropagation();
+  });
   // Close on a click that both starts and ends on the backdrop. A text selection dragged
   // out of an input ends outside the box too, and must not throw the form away.
   let downOutside = false;
@@ -669,8 +675,15 @@ function paintSignInCopy(dialog) {
   lede.textContent = reason || s.lede;
   close.setAttribute('aria-label', s.close);
   const icon = document.querySelector('link[rel~="icon"][type="image/svg+xml"]')?.href;
-  if (icon) mark.replaceChildren(h('img', { src: icon, alt: '', width: 40, height: 40, decoding: 'async' }));
-  else mark.replaceChildren();
+  if (icon) {
+    // A favicon that fails to load would draw a broken-image box in the dialog's title.
+    // Emptying the mark instead lets .neo-auth-mark:empty take it out of the header grid.
+    const img = h('img', { src: icon, alt: '', width: 40, height: 40, decoding: 'async' });
+    img.addEventListener('error', () => img.remove(), { once: true });
+    mark.replaceChildren(img);
+  } else {
+    mark.replaceChildren();
+  }
   // The shared-account line appears once: as the lede, or here when a reason took the lede.
   foot.replaceChildren(h('p', {}, reason ? `${s.lede} ` : '', ...legalLinks()));
   paintScheme(dialog);
