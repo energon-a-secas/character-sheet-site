@@ -142,7 +142,7 @@ export function blankSheet() {
     },
 
     // Auth / session (not persisted to localStorage; Clerk owns the session)
-    _user: null,       // { label } when signed in via neorgon-auth-client
+    _user: null,       // { label } when signed in through the Neorgon Auth Kit
     _sheetId: null,    // current Convex sheet _id
     _sheetName: null,  // current sheet name
   };

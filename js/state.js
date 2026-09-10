@@ -16,13 +16,6 @@ export const convex = new ConvexHttpClient(CONVEX_URL);
 
 export const api = {
   sheets: { list: "sheets:list", save: "sheets:save", remove: "sheets:remove" },
-  migration: {
-    myAccountLink: "migration:myAccountLink",
-    linkLegacyAccount: "migration:linkLegacyAccount",
-    getUserSetting: "migration:getUserSetting",
-    setUserSetting: "migration:setUserSetting",
-    listUserSettings: "migration:listUserSettings",
-  },
 };
 
 const STORAGE_KEY = 'player-card';

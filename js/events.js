@@ -11,6 +11,7 @@ import {
 } from './card/panel.js';
 import { downloadPresentation, generatePresentationHTML, generateScript } from './present.js';
 import { debounce, $, showToast, scrollTop } from './utils.js';
+import { NeoAuth } from './neorgon-auth.js';
 
 const debouncedSearch = debounce(handleSearch, 350);
 
@@ -382,54 +383,11 @@ function getNestedValue(obj, path) {
   return target;
 }
 
-// ── Auth helpers ────────────────────────────────────────────────────────────
+// ── Auth ────────────────────────────────────────────────────────────────────
+// The Neorgon Auth Kit owns the header slot, the sign-in dialog and the Convex
+// token. This file only listens, and asks for a sign-in before a cloud save.
 
-function openAuthModal() {
-  const modal = document.getElementById('authModal');
-  if (!modal) return;
-  const title = document.getElementById('authModalTitle');
-  if (title) title.textContent = state._user ? 'Account' : 'Sign in';
-  modal.classList.add('open');
-  modal.setAttribute('aria-hidden', 'false');
-  document.body.classList.add('auth-modal-open');
-  if (state._user) void refreshLegacyLinkSection();
-}
-
-function closeAuthModal() {
-  const modal = document.getElementById('authModal');
-  if (!modal) return;
-  modal.classList.remove('open');
-  modal.setAttribute('aria-hidden', 'true');
-  document.body.classList.remove('auth-modal-open');
-}
-
-function updateAuthUI() {
-  const toggle = document.getElementById('authToggle');
-  const userInfo = document.getElementById('authUserInfo');
-  const authGate = document.getElementById('authGate');
-  const title = document.getElementById('authModalTitle');
-  if (!toggle) return;
-
-  if (title) {
-    title.textContent = state._user ? 'Account' : 'Sign in';
-  }
-
-  if (state._user) {
-    toggle.classList.add('logged-in');
-    toggle.setAttribute('aria-label', `Account: ${state._user.label}`);
-    if (authGate) authGate.hidden = true;
-    userInfo.hidden = false;
-    const du = document.getElementById('authDisplayUser');
-    if (du) du.textContent = state._user.label;
-    document.getElementById('sheetsBar').hidden = false;
-  } else {
-    toggle.classList.remove('logged-in');
-    toggle.setAttribute('aria-label', 'Account');
-    if (authGate) authGate.hidden = false;
-    userInfo.hidden = true;
-    document.getElementById('sheetsBar').hidden = true;
-  }
-}
+const SAVE_REASON = 'Sign in to save your sheets to your account.';
 
 async function loadUserSheets() {
   if (!state._user) return;
@@ -448,119 +406,29 @@ async function loadUserSheets() {
   } catch { /* Convex not configured yet */ }
 }
 
-async function refreshLegacyLinkSection() {
-  const section = document.getElementById('legacyLinkSection');
-  const msg = document.getElementById('legacyLinkMessage');
-  if (!section) return;
-  if (!state._user) {
-    section.hidden = true;
-    return;
-  }
-  try {
-    const link = await convex.query(api.migration.myAccountLink, {});
-    section.hidden = !!link;
-    if (msg) {
-      msg.hidden = true;
-      msg.textContent = '';
-      msg.classList.remove('legacy-link-message--err');
-    }
-  } catch {
-    section.hidden = true;
-  }
-}
-
-async function onLegacyLinkClick() {
-  const userEl = document.getElementById('legacyLinkUser');
-  const passEl = document.getElementById('legacyLinkPassword');
-  const msg = document.getElementById('legacyLinkMessage');
-  const section = document.getElementById('legacyLinkSection');
-  const username = userEl?.value?.trim() || '';
-  const password = passEl?.value || '';
-  if (!username || !password) {
-    if (msg) {
-      msg.textContent = 'Enter legacy username and password.';
-      msg.classList.add('legacy-link-message--err');
-      msg.hidden = false;
-    }
-    return;
-  }
-  try {
-    const res = await convex.mutation(api.migration.linkLegacyAccount, { username, password });
-    if (res.ok) {
-      if (msg) {
-        msg.textContent = `Linked legacy user @${res.legacyUsername}.`;
-        msg.classList.remove('legacy-link-message--err');
-        msg.hidden = false;
-      }
-      if (userEl) userEl.value = '';
-      if (passEl) passEl.value = '';
-      if (section) section.hidden = true;
-      showToast('Legacy account linked');
-    } else if (msg) {
-      msg.textContent = res.error || 'Link failed';
-      msg.classList.add('legacy-link-message--err');
-      msg.hidden = false;
-    }
-  } catch {
-    if (msg) {
-      msg.textContent = 'Link failed. Try again.';
-      msg.classList.add('legacy-link-message--err');
-      msg.hidden = false;
-    }
-  }
-}
-
-/** Clerk + Convex JWT via vendored neorgon-auth-client. */
+/** Called once from app.js, before the first render. */
 export async function initCharacterSheetAuth() {
-  const pk = document.querySelector('meta[name="clerk-publishable-key"]')?.content?.trim();
-  if (!pk) {
-    console.warn('Character Sheet: add <meta name="clerk-publishable-key" content="pk_…"> for cloud saves.');
-    updateAuthUI();
-    return null;
-  }
+  // Called once with the settled state, then only on a real change (never on a
+  // token refresh), so the sheets query runs once per sign-in, not once per tick.
+  let lastUserId = null;
+  NeoAuth.onChange(({ signedIn, userId, label }) => {
+    // The active sheet belongs to the account that opened it. Signing out, or in
+    // as someone else, drops it, so Save cannot aim at a row this account cannot see.
+    if (userId !== lastUserId) {
+      state._sheetId = null;
+      state._sheetName = null;
+    }
+    lastUserId = userId;
+    state._user = signedIn ? { label } : null;
+    const sheetsBar = document.getElementById('sheetsBar');
+    if (sheetsBar) sheetsBar.hidden = !signedIn;
+    if (signedIn) void loadUserSheets();
+  });
   try {
-    const { initNeorgonClerkConvex, neorgonDisplayLabel } = await import('./vendor/neorgon-auth.js');
-    const clerk = await initNeorgonClerkConvex({
-      convex,
-      publishableKey: pk,
-      signInHost: '#neorgon-signin-mount',
-      userButtonHost: '#neorgon-user-mount',
-      signInProps: {
-        appearance: {
-          layout: {
-            // Hides the "Development mode" footer on test keys (pk_test_). Production: use pk_live_.
-            unsafe_disableDevelopmentModeWarnings: true,
-          },
-          variables: {
-            colorPrimary: '#0063e5',
-            colorTextOnPrimaryBackground: '#ffffff',
-            borderRadius: '10px',
-          },
-        },
-        localization: {
-          formFieldInputPlaceholder__emailAddress_username: 'Email address or username',
-          formFieldLabel__emailAddress_username: 'Email or username',
-        },
-      },
-      onSession: ({ clerk, hasSession }) => {
-        if (hasSession) {
-          state._user = { label: neorgonDisplayLabel(clerk) };
-          closeAuthModal();
-        } else {
-          state._user = null;
-          state._sheetId = null;
-          state._sheetName = null;
-        }
-        updateAuthUI();
-        if (hasSession) void loadUserSheets();
-        void refreshLegacyLinkSection();
-      },
-    });
-    return clerk;
+    await NeoAuth.start({ convex });
   } catch (e) {
-    console.warn('Character Sheet: Clerk init failed', e);
-    updateAuthUI();
-    return null;
+    // The interview works without an account, so a failure here must not stop the first render.
+    console.warn('Character Sheet: auth failed to start', e);
   }
 }
 
@@ -575,27 +443,6 @@ function deepMergeIntoState(data) {
   const { _user, _sheetId, _sheetName, ...safeData } = data;
   deepMerge(state, safeData);
 }
-
-// ── Auth event listeners ──────────────────────────────────────────────────────
-
-document.getElementById('authToggle').addEventListener('click', () => {
-  const modal = document.getElementById('authModal');
-  if (modal?.classList.contains('open')) closeAuthModal();
-  else openAuthModal();
-});
-
-document.getElementById('authModalClose')?.addEventListener('click', closeAuthModal);
-document.getElementById('authModalBackdrop')?.addEventListener('click', closeAuthModal);
-
-document.getElementById('legacyLinkBtn')?.addEventListener('click', () => { void onLegacyLinkClick(); });
-
-document.addEventListener('keydown', (e) => {
-  if (e.key !== 'Escape') return;
-  if (document.getElementById('authModal')?.classList.contains('open')) {
-    e.preventDefault();
-    closeAuthModal();
-  }
-});
 
 // ── Sheet window functions ───────────────────────────────────────────────────
 
@@ -618,7 +465,7 @@ window.loadSheet = async function(sheetId) {
 };
 
 window.createNewSheet = async function() {
-  if (!state._user) { showToast('Log in to save'); return; }
+  if (!state._user && !(await NeoAuth.requireSignIn({ reason: SAVE_REASON }))) return;
   const name = prompt('Sheet name:', 'My Character Sheet');
   if (!name) return;
   try {
@@ -635,7 +482,7 @@ window.createNewSheet = async function() {
 };
 
 window.saveCurrentSheet = async function() {
-  if (!state._user) { showToast('Log in to save'); return; }
+  if (!state._user && !(await NeoAuth.requireSignIn({ reason: SAVE_REASON }))) return;
   if (!state._sheetId) { await window.createNewSheet(); return; }
   try {
     const data = JSON.stringify(getSheetData(state));
