@@ -103,7 +103,7 @@ Ten questions, all routed through the **existing** `data-choice` / `data-escape`
   whitespace fails `legends-check.mjs`.
 - **The Optimus Prime chip is a real answer, not an error state.** Its subtitle names its
   real series like every other chip; spotting that Transformers is the odd one out is the
-  joke, and the card supplies the punchline (`— which is not a Gundam`) only after the pick.
+  joke, and the card supplies the punchline (`: which is not a Gundam`) only after the pick.
   `impostor: true` in `GUNDAMS` is read by both `legendFacts` and `comments.js`.
 - `getSectionFill` returns 1 for `retroDepth === 'lost'`: a ring stuck at 10% for someone
   who honestly said they don't know this stuff reads as a chore they failed.
@@ -149,7 +149,7 @@ Two Node + Playwright scripts under `.forge/`, both needing `make serve` on 8814
 node .forge/fit-check.mjs           # presets render at declared size; nothing clipped; 35 theme×layout combos
 node .forge/app-check.mjs           # the real app: modal, every chip, every export button, share link, deck/script parity
 node .forge/party-check.mjs         # party board: overlap maths against hand-computed answers, plus the page wiring
-node .forge/legends-check.mjs       # Legends + meme classifier + sheet migration — every guard tripped, not just exercised
+node .forge/legends-check.mjs       # Legends + meme classifier + sheet migration: every guard tripped, not just exercised
 node .forge/export-shot.mjs slack default 1   # writes the actual PNG export for eyeballing
 node .forge/modal-shot.mjs slack default      # screenshots the modal as a user sees it
 node .forge/party-shot.mjs 1400               # screenshots the party board with the 4-person fixture
