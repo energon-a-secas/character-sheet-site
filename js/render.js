@@ -248,7 +248,7 @@ function renderAnime() {
     if (d.genres.length > 0) {
       html += `
         <div class="field-group">
-          <label class="field-label">Favorite ${d.genres.join(', ')} anime?</label>
+          <label class="field-label">Favorite ${escHtml(d.genres.join(', '))} anime?</label>
           <input class="field-input" type="text" value="${escHtml(d.favoriteFromGenre)}" data-field="anime.favoriteFromGenre" placeholder="Your favorite from these genres" maxlength="100">
         </div>`;
     }
@@ -426,7 +426,7 @@ function renderMovies() {
   if (d.genres.length > 0) {
     html += `
       <div class="field-group">
-        <label class="field-label">Favorite ${d.genres.join(', ')} movie/series?</label>
+        <label class="field-label">Favorite ${escHtml(d.genres.join(', '))} movie/series?</label>
         <input class="field-input" type="text" value="${escHtml(d.favoriteFromGenre)}" data-field="movies.favoriteFromGenre" placeholder="Your favorite from these genres" maxlength="100">
       </div>`;
   }

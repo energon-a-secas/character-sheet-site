@@ -13,6 +13,24 @@ export function $(id) {
 }
 
 
+/**
+ * An absolute https: URL, normalised, or '' for anything else.
+ *
+ * For image URLs that arrive from the search APIs (RAWG, Jikan, TMDB through the
+ * Worker). `javascript:`, `data:`, `http:` and relative values are dropped rather
+ * than rendered, so a hostile upstream record cannot pick the scheme. Still pass
+ * the result through escHtml at the sink: this checks the scheme, not the quotes.
+ */
+export function httpsUrl(value) {
+  if (typeof value !== 'string' || !value) return '';
+  try {
+    const u = new URL(value);
+    return u.protocol === 'https:' ? u.href : '';
+  } catch {
+    return '';
+  }
+}
+
 /** This site's own toast contract, rendered by the kit. */
 export function showToast(msg) {
   return kitToast(msg, { id: 'app-toast', className: 'toast',

@@ -10,7 +10,7 @@ import {
   exportPng, exportCopy, exportShare, exportPdf, copyShareLink, openShareLink,
 } from './card/panel.js';
 import { downloadPresentation, generatePresentationHTML, generateScript } from './present.js';
-import { debounce, $, showToast, scrollTop } from './utils.js';
+import { debounce, $, showToast, scrollTop, escHtml, httpsUrl } from './utils.js';
 import { NeoAuth } from './neorgon-auth.js';
 
 const debouncedSearch = debounce(handleSearch, 350);
@@ -299,18 +299,23 @@ async function handleSearch(wrapper, query) {
     return;
   }
 
+  // Every field here comes from a third-party API (RAWG, Jikan, TMDB through the
+  // Worker, Open-Meteo), so each one is escaped, and an image is drawn only from an
+  // https: URL. data-result is escaped too: the browser decodes it back to the exact
+  // JSON when handleResultSelect reads the dataset.
   resultsEl.innerHTML = results.map(r => {
     let meta = '';
     if (type === 'city') {
-      meta = `${r.country || ''}${r.region ? ` \u00B7 ${r.region}` : ''}${r.timezone ? ` \u00B7 ${r.timezone}` : ''}`;
+      meta = `${escHtml(r.country || '')}${r.region ? ` \u00B7 ${escHtml(r.region)}` : ''}${r.timezone ? ` \u00B7 ${escHtml(r.timezone)}` : ''}`;
     } else {
-      meta = `${r.year || ''}${r.type ? ` \u00B7 ${r.type}` : ''}${r.platforms ? ` \u00B7 ${r.platforms}` : ''}${r.episodes ? ` \u00B7 ${r.episodes}` : ''}${r.nicknames ? ` \u00B7 ${r.nicknames}` : ''}`;
+      meta = `${escHtml(r.year || '')}${r.type ? ` \u00B7 ${escHtml(r.type)}` : ''}${r.platforms ? ` \u00B7 ${escHtml(r.platforms)}` : ''}${r.episodes ? ` \u00B7 ${escHtml(r.episodes)}` : ''}${r.nicknames ? ` \u00B7 ${escHtml(r.nicknames)}` : ''}`;
     }
+    const img = httpsUrl(r.image);
     return `
-      <div class="search-result-item" data-result='${JSON.stringify(r).replace(/'/g, '&#39;')}'>
-        ${type === 'city' ? '<div class="search-result-icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg></div>' : r.image ? `<img class="search-result-img" src="${r.image}" alt="" loading="lazy">` : '<div class="search-result-img"></div>'}
+      <div class="search-result-item" data-result="${escHtml(JSON.stringify(r))}">
+        ${type === 'city' ? '<div class="search-result-icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg></div>' : img ? `<img class="search-result-img" src="${escHtml(img)}" alt="" loading="lazy">` : '<div class="search-result-img"></div>'}
         <div class="search-result-info">
-          <div class="search-result-title">${r.name}</div>
+          <div class="search-result-title">${escHtml(r.name)}</div>
           <div class="search-result-meta">${meta}</div>
         </div>
       </div>`;
