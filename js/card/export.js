@@ -21,16 +21,30 @@ async function cardCss() {
   return _cardCssText;
 }
 
+// The image hosts that connect-src allows on both pages that inline (index.html and
+// card.html). An image anywhere else is not fetched at all: the CSP would refuse the
+// request and log a violation, and on card.html a shared sheet must not make this
+// browser call a host its sender chose. Keep this list in step with those policies.
+const INLINE_HOSTS = new Set(['media.rawg.io', 'cdn.myanimelist.net', 'image.tmdb.org', 'i.ytimg.com']);
+
+function inlinable(url) {
+  try {
+    const u = new URL(url);
+    return u.protocol === 'https:' && INLINE_HOSTS.has(u.hostname);
+  } catch { return false; }
+}
+
 /**
  * Fetch every remote image and convert it to a data: URL.
  *
  * Required for both export paths: an SVG foreignObject cannot load external
  * images at all, and a canvas holding a cross-origin image is tainted. Images
- * that fail resolve to nothing and render as an empty frame.
+ * that fail, or sit on a host outside INLINE_HOSTS, resolve to nothing and
+ * render as an empty frame.
  */
 export async function inlineImages(urls) {
   const map = new Map();
-  await Promise.all(urls.map(async (url) => {
+  await Promise.all(urls.filter(inlinable).map(async (url) => {
     try {
       const res = await fetch(url, { mode: 'cors' });
       if (!res.ok) return;

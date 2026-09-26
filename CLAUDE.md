@@ -19,11 +19,13 @@ Modular ES module app. `js/app.js` is the entry point. It calls `loadSaved`, `re
 
 **State** (`js/state.js`): Single exported `state` object with sections: `identity`, `gaming`, `anime`, `legends`, `movies`, `hobbies`, `wildcards`, `extras`, plus `showBuilder` flag and `cardConfig`. Persisted to `localStorage` key `player-card` via `save(state)`. `loadSaved` uses `deepMerge` so new fields added to state aren't clobbered by older saved data, then `migrateSheet`, see **Shape migrations** below.
 
-**Sections flow**: 9 interview sections (`SECTIONS` array in `data.js`) → card builder step (`state.showBuilder = true`) → card modal (`js/card/panel.js`). Navigation (`nextSection` / `prevSection`) is exposed on `window` and called from inline HTML `onclick`. Section progress is tracked by `currentSection` index.
+**Sections flow**: 9 interview sections (`SECTIONS` array in `data.js`) → card builder step (`state.showBuilder = true`) → card modal (`js/card/panel.js`). Navigation (`nextSection` / `prevSection`) is exposed on `window` and reached through `data-action` buttons (see **Events**). Section progress is tracked by `currentSection` index.
 
 **Rendering** (`js/render.js`): `render()` is the single re-render entry point. It checks `state.showBuilder`, if true, it dynamic-imports `builder.js` and delegates. Otherwise it calls `renderSection`, `renderProgressBar`, `renderNav`, `renderMediaShelf`. Section content is built via `innerHTML` strings with `escHtml()` for XSS safety. `data-*` attributes on DOM elements drive all event delegation.
 
-**Events** (`js/events.js`): One delegated listener each for `input`, `click`, `keydown` on `document`. Routing is purely by `data-*` attributes (`data-field`, `data-toggle`, `data-choice`, `data-console`, `data-hobby`, `data-wildcard`, `data-escape`, `data-escape-wc`, `data-remove`, `data-avatar`, `data-highlight`, `data-dot`, `data-builder-opt`, plus the card modal's `data-card-layout` / `data-card-theme` / `data-card-scale` / `data-card-action`). Navigation functions are exposed on `window` (`nextSection`, `prevSection`, `closeCardModal`, `startOver`).
+**Events** (`js/events.js`): One delegated listener each for `input`, `change`, `click`, `keydown` on `document`, plus a capture-phase `error` listener for images. Routing is purely by `data-*` attributes (`data-field`, `data-toggle`, `data-choice`, `data-console`, `data-hobby`, `data-wildcard`, `data-escape`, `data-escape-wc`, `data-remove`, `data-avatar`, `data-highlight`, `data-dot`, `data-builder-opt`, plus the card modal's `data-card-layout` / `data-card-theme` / `data-card-scale` / `data-card-action`). Navigation functions are exposed on `window` (`nextSection`, `prevSection`, `closeCardModal`, `startOver`).
+
+**No inline handlers, anywhere.** The page CSP has no `'unsafe-inline'` for scripts, so an `onclick=` or `onerror=` in `index.html` or in a JS template string never runs (the browser only logs a violation). Buttons carry `data-action` (the `ACTIONS` map in `events.js`, which calls the `window.*` functions), the sheet picker carries `data-change="load-sheet"`, and an image that may fail carries `data-img-fallback` (`hide`, `meme`, `next-flex`, `next-inline-flex`), handled by `onImageError`. `error` does not bubble, which is why that one listens in the capture phase.
 
 The card modal's chips are namespaced `data-card-*` on purpose: a bare `[data-theme]` selector also matches `<html data-theme>`, which the header kit sets for a visitor's chosen theme, so it swallowed unrelated clicks.
 
@@ -125,7 +127,40 @@ URL and previewing what you pasted into your own interview is the feature. `card
 `party.html` keep the tight allowlist on purpose: there you are viewing *someone else's*
 sheet, and a wildcard would let a shared link make your browser call a host its sender
 chose. `connect-src` stays narrow on both; `i.ytimg.com` is listed because the card inlines
-YouTube thumbnails for export.
+YouTube thumbnails for export. `INLINE_HOSTS` in `js/card/export.js` mirrors those image
+hosts, so an image anywhere else is never fetched rather than fetched and refused.
+
+## Content Security Policy
+
+Every page ships a strict `<meta http-equiv="Content-Security-Policy">`: `default-src 'none'`,
+no `'unsafe-inline'` for scripts, `object-src 'none'`, `base-uri 'none'`. GitHub Pages sends no
+headers, so `frame-ancestors`, `report-uri` and `X-Content-Type-Options` would do nothing in a
+meta tag and are deliberately absent.
+
+- **The only inline script is the header kit's theme guard**, allowed by its `sha256-` hash on
+  `index.html`, `card.html` and `party.html`. Edit it and the hash must be re-stamped (smoke
+  check 29 in the monorepo fails on a stale or missing pin). `404.html` allows no script at all.
+- **Package CDNs are pinned to paths, never hosts.** `index.html` allows
+  `https://esm.sh/convex@1.21.0/` plus the two `jwt-decode` paths that module imports. A bare
+  `https://esm.sh` would run any package an injected `import()` names. Bumping the Convex
+  version in `js/state.js` means updating those paths in the same commit, or the app does not
+  start. `clerk.neorgon.com` is listed as a host because it serves only Clerk's own bundles
+  (an arbitrary `/npm/<package>` there is a 404) and `sync-auth.sh --check` expects it.
+- **Exact hosts in `connect-src`:** the Convex deployment's `/api/` (the client is
+  `ConvexHttpClient`, plain https, so no `wss:`), the search Worker
+  `charactersheet-api.neorgon.workers.dev`, Open-Meteo's `/v1/search`, the four image hosts,
+  Clerk, and the two analytics endpoints.
+- **The intro-deck preview** in the card modal is a `blob:` iframe (`frame-src blob:`) with
+  `sandbox="allow-same-origin"` and no `allow-scripts`. It inherits the page policy, so it
+  carries no `<script>`: `generatePresentationHTML` leaves it out and `events.js` runs
+  `runDeck(frame.contentDocument)` from the page. The downloaded deck is the same HTML plus
+  `runDeck` serialised into an inline script, so it still works from disk. `runDeck` must stay
+  self-contained for that reason.
+
+Verify changes at the production origin, not on localhost: the header kit's analytics and the
+Auth Kit's Clerk key only run on `charactersheet.neorgon.com`, so a localhost run never
+exercises half the policy. Route `https://charactersheet.neorgon.com/**` to local files in
+Playwright and listen for `securitypolicyviolation`.
 
 ## Key gotchas
 

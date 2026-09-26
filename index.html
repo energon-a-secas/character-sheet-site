@@ -9,17 +9,29 @@
   <meta name="apple-mobile-web-app-title" content="Character Sheet">
   <link rel="manifest" href="/site.webmanifest">
   <meta name="neo-mark" content="on">
-  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; base-uri 'self'; form-action 'self'; script-src 'self' 'unsafe-inline' https://esm.sh https://clerk.neorgon.com cdn.jsdelivr.net cdnjs.cloudflare.com https://challenges.cloudflare.com https://gc.zgo.at https://static.cloudflareinsights.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdn.neorgon.org; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: blob: https:; connect-src 'self' https://*.convex.cloud https://clerk.neorgon.com https://accounts.neorgon.com https://challenges.cloudflare.com https://*.workers.dev https://media.rawg.io https://cdn.myanimelist.net https://image.tmdb.org https://geocoding-api.open-meteo.com https://i.ytimg.com https://neorgon.goatcounter.com https://cloudflareinsights.com; frame-src 'self' blob: https://challenges.cloudflare.com https://clerk.neorgon.com https://accounts.neorgon.com https://www.youtube.com https://www.youtube-nocookie.com; worker-src 'self' blob:">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' 'sha256-na6phygP/tfoCIp4oBeQgGJJpQsZob/udrLum+20QTI=' https://esm.sh/convex@1.21.0/ https://esm.sh/jwt-decode@%5E3.1.2 https://esm.sh/jwt-decode@3.1.2/ https://clerk.neorgon.com https://challenges.cloudflare.com https://*.protect.clerk.com https://gc.zgo.at https://static.cloudflareinsights.com; style-src 'self' 'unsafe-inline' https://cdn.neorgon.org/v1.0.0/; img-src 'self' data: blob: https:; font-src 'self'; connect-src 'self' https://unique-lobster-957.convex.cloud/api/ https://charactersheet-api.neorgon.workers.dev https://geocoding-api.open-meteo.com/v1/search https://media.rawg.io https://cdn.myanimelist.net https://image.tmdb.org https://i.ytimg.com https://clerk.neorgon.com https://*.protect.clerk.com:* https://neorgon.goatcounter.com/count https://cloudflareinsights.com; frame-src blob: https://challenges.cloudflare.com https://*.protect.clerk.com; worker-src 'self' blob:; manifest-src 'self'; media-src 'none'; object-src 'none'; base-uri 'none'; form-action 'self'">
   <meta name="referrer" content="strict-origin-when-cross-origin">
-  <meta http-equiv="X-Content-Type-Options" content="nosniff">
   <!--
+    Strict policy: no 'unsafe-inline' for scripts. The one inline script is the
+    header kit's theme guard, allowed by its sha256 hash, so editing it means
+    re-stamping the hash. Buttons use data-action and events.js, never onclick=.
+    Package CDNs are pinned to exact paths (esm.sh convex@1.21.0 and the
+    jwt-decode it pulls), never a whole host: a bare https://esm.sh would run any
+    package an injection names. The Convex client is ConvexHttpClient, plain
+    https, so there is no wss entry.
+    frame-src blob: is the intro-deck preview, which inherits this policy and runs
+    no script of its own (events.js wires it). frame-ancestors, report-uri and
+    X-Content-Type-Options do nothing in a meta tag, so they are not here.
+
     img-src is `https:` on THIS page only. The meme field takes an arbitrary image
     URL, and a preview of a URL you pasted yourself into your own interview is the
     feature. card.html and party.html keep the tight allowlist on purpose: there
     you are viewing *someone else's* sheet, and a wildcard would let a shared link
     make your browser call a host its sender chose. connect-src stays narrow on
     both: i.ytimg.com is listed because the card inlines YouTube thumbnails for
-    export, and that is a single known host, not a wildcard.
+    export, and that is a single known host, not a wildcard. A meme image on any
+    other host is previewed but never inlined: INLINE_HOSTS in js/card/export.js
+    mirrors connect-src, so the card does not even attempt the refused fetch.
   -->
   <!-- Clerk: Dashboard → User & Authentication → enable Email and Username so people can sign in with either. -->
   <meta name="clerk-publishable-key" content="pk_live_Y2xlcmsubmVvcmdvbi5jb20k">
