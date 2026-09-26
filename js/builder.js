@@ -40,7 +40,7 @@ export function renderBuilder() {
           const typeIcon = a.type === 'character' ? IconPerson : a.type === 'anime' ? IconAnime : a.type === 'game' ? IconGame : IconMovie;
           return `
           <div class="avatar-option${cfg.avatarId === a.id ? ' selected' : ''}" data-avatar="${a.id}">
-            <img src="${escHtml(a.image)}" alt="${escHtml(a.label)}" loading="lazy" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
+            <img src="${escHtml(a.image)}" alt="${escHtml(a.label)}" loading="lazy" data-img-fallback="next-flex">
             <div class="avatar-option-fallback" style="display:none">
               <span class="avatar-option-icon">${typeIcon}</span>
             </div>
@@ -63,7 +63,7 @@ export function renderBuilder() {
           return `
           <label class="highlight-item${cfg.highlightedMedia.includes(m.id) ? ' selected' : ''}">
             <input type="checkbox" data-highlight="${m.id}" ${cfg.highlightedMedia.includes(m.id) ? 'checked' : ''} hidden>
-            <img src="${escHtml(m.image)}" alt="${escHtml(m.name)}" loading="lazy" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
+            <img src="${escHtml(m.image)}" alt="${escHtml(m.name)}" loading="lazy" data-img-fallback="next-flex">
             <div class="highlight-item-fallback" style="display:none">
               <span class="highlight-item-icon">${typeIcon}</span>
             </div>
@@ -89,7 +89,7 @@ export function renderBuilder() {
     </div>
 
     <div class="builder-present-row">
-      <button class="btn btn-present" onclick="generatePresentation()">&#9654; Generate Intro Slide</button>
+      <button class="btn btn-present" data-action="download-deck">&#9654; Generate Intro Slide</button>
       <div class="builder-present-hint">Downloads a standalone HTML presentation with your story &amp; the Two Truths One Lie game</div>
     </div>
   </div>`;

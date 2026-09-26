@@ -134,7 +134,7 @@ export function renderSection(animate) {
   html += '<div id="section-comment" class="section-comment" hidden></div>';
   html += '</div>';
   if (sec.key === 'intro') {
-    html += `<div class="skip-intro-row"><button class="skip-intro-btn" onclick="skipIntro()">Skip, jump to the fun stuff →</button></div>`;
+    html += `<div class="skip-intro-row"><button class="skip-intro-btn" data-action="skip-intro">Skip, jump to the fun stuff →</button></div>`;
   }
   container.innerHTML = html;
 }
@@ -191,7 +191,7 @@ function renderGaming() {
         ${CONSOLES.map(c => `
           <div class="console-option${d.consoles.includes(c.id) ? ' selected' : ''}" data-console="${c.id}">
             ${c.icon.startsWith('http') 
-              ? `<img src="${c.icon}" class="console-icon-img" alt="${escHtml(c.label)}" onerror="this.style.display='none';">` 
+              ? `<img src="${c.icon}" class="console-icon-img" alt="${escHtml(c.label)}" data-img-fallback="hide">` 
               : c.icon.startsWith('<svg') 
                 ? `<span class="console-icon-svg">${c.icon}</span>`
                 : `<span class="console-icon">${c.icon}</span>`}
@@ -606,8 +606,7 @@ export function memePreviewHtml(url) {
     </div>`;
   }
   return `<div class="meme-preview">
-    <img class="meme-thumb" src="${escHtml(media.thumb)}" alt="" loading="lazy"
-         onerror="this.closest('.meme-preview').classList.add('meme-preview--broken')">
+    <img class="meme-thumb" src="${escHtml(media.thumb)}" alt="" loading="lazy" data-img-fallback="meme">
     <span class="meme-kind">${escHtml(media.label)}</span>
     <span class="meme-broken-note">Couldn't load that image. The link still works on your card.</span>
   </div>`;
@@ -714,7 +713,7 @@ function renderSearchField(label, type, stateKey, selected, max, placeholder) {
       const typeIcon = type === 'character' ? IconPerson : IconAnime;
       return `
       <span class="selected-tag">
-        ${item.image ? `<img src="${escHtml(item.image)}" alt="" onerror="this.style.display='none'; this.nextElementSibling.style.display='inline-flex';">` : ''}
+        ${item.image ? `<img src="${escHtml(item.image)}" alt="" data-img-fallback="next-inline-flex">` : ''}
         <span class="selected-tag-icon" style="display:${item.image ? 'none' : 'inline-flex'}; align-items:center">${typeIcon}</span>
         ${escHtml(item.name)}
         <span class="tag-remove" data-remove="${stateKey}" data-idx="${i}">&times;</span>
@@ -756,7 +755,7 @@ export function renderMediaShelf() {
       ${allMedia.map(m => {
         const typeIcon = m.type === 'game' ? IconGame : m.type === 'anime' ? IconAnime : IconMovie;
         const imgHtml = m.image
-          ? `<img src="${escHtml(m.image)}" alt="${escHtml(m.name)}" loading="lazy" onerror="this.onerror=null; this.style.display='none'; this.nextElementSibling.style.display='flex';">`
+          ? `<img src="${escHtml(m.image)}" alt="${escHtml(m.name)}" loading="lazy" data-img-fallback="next-flex">`
           : '';
         return `
         <div class="shelf-item shelf-item--${m.type}">

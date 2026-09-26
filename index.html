@@ -87,7 +87,7 @@
 
   <main id="main">
     <div class="section-wrapper">
-      <button class="section-arrow arrow-left" id="arrowLeft" onclick="prevSection()" aria-label="Previous section">
+      <button class="section-arrow arrow-left" id="arrowLeft" data-action="prev-section" aria-label="Previous section">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
           <polyline points="15 18 9 12 15 6"/>
         </svg>
@@ -96,12 +96,12 @@
 
       <!-- Sheets bar (visible when logged in) -->
       <div class="sheets-bar" id="sheetsBar" hidden>
-        <select class="sheet-select" id="sheetSelect" onchange="loadSheet(this.value)">
+        <select class="sheet-select" id="sheetSelect" data-change="load-sheet">
           <option value="">select a sheet,</option>
         </select>
-        <button class="btn btn-sm" onclick="createNewSheet()">+ New</button>
-        <button class="btn btn-sm btn-primary" onclick="saveCurrentSheet()">Save</button>
-        <button class="btn btn-sm btn-danger" onclick="deleteCurrentSheet()">Delete</button>
+        <button class="btn btn-sm" data-action="new-sheet">+ New</button>
+        <button class="btn btn-sm btn-primary" data-action="save-sheet">Save</button>
+        <button class="btn btn-sm btn-danger" data-action="delete-sheet">Delete</button>
       </div>
 
       <!-- Progress bar -->
@@ -121,16 +121,16 @@
 
       <!-- Navigation -->
       <div class="nav-buttons" id="nav-buttons">
-        <button class="btn btn-secondary" id="btn-prev" onclick="prevSection()">Back</button>
+        <button class="btn btn-secondary" id="btn-prev" data-action="prev-section">Back</button>
         <div class="nav-center">
-          <button class="btn btn-random" id="btn-random" onclick="randomFill()" title="Roll the dice, try random answers">Randomize</button>
-          <button class="btn btn-restart" id="btn-restart" onclick="startOver()" title="Clear and start over">Start Over</button>
+          <button class="btn btn-random" id="btn-random" data-action="random-fill" title="Roll the dice, try random answers">Randomize</button>
+          <button class="btn btn-restart" id="btn-restart" data-action="start-over" title="Clear and start over">Start Over</button>
         </div>
-        <button class="btn btn-primary" id="btn-next" onclick="nextSection()">Next</button>
+        <button class="btn btn-primary" id="btn-next" data-action="next-section">Next</button>
       </div>
 
     </div>
-      <button class="section-arrow arrow-right" id="arrowRight" onclick="nextSection()" aria-label="Next section">
+      <button class="section-arrow arrow-right" id="arrowRight" data-action="next-section" aria-label="Next section">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
           <polyline points="9 18 15 12 9 6"/>
         </svg>
@@ -145,11 +145,11 @@
   <!-- Character Card Modal -->
   <div class="modal-overlay" id="card-modal">
     <div class="modal-content card-modal-content">
-      <button class="modal-close" onclick="closeCardModal()" aria-label="Close card preview">&times;</button>
+      <button class="modal-close" data-action="close-card" aria-label="Close card preview">&times;</button>
       <div class="card-modal-panels">
         <div class="modal-panel modal-panel--intro">
           <div class="panel-label">Intro Slide</div>
-          <iframe id="intro-preview-frame" class="intro-preview-iframe" title="Intro slide preview" sandbox="allow-scripts"></iframe>
+          <iframe id="intro-preview-frame" class="intro-preview-iframe" title="Intro slide preview" sandbox="allow-same-origin"></iframe>
         </div>
         <div class="modal-panel modal-panel--card">
           <div class="panel-label">Character Card</div>

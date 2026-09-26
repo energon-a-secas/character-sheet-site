@@ -9,7 +9,7 @@ import {
   openCardPanel, drawCard, handleCardControl,
   exportPng, exportCopy, exportShare, exportPdf, copyShareLink, openShareLink,
 } from './card/panel.js';
-import { downloadPresentation, generatePresentationHTML, generateScript } from './present.js';
+import { downloadPresentation, generatePresentationHTML, generateScript, runDeck } from './present.js';
 import { debounce, $, showToast, scrollTop, escHtml, httpsUrl } from './utils.js';
 import { NeoAuth } from './neorgon-auth.js';
 
@@ -17,6 +17,7 @@ const debouncedSearch = debounce(handleSearch, 350);
 
 // Track intro slide blob URL so it can be revoked on next open
 let _introBlobUrl = null;
+let _introFrameWired = false;
 
 function tryComment(field) {
   const text = getComment(field, state);
@@ -25,8 +26,53 @@ function tryComment(field) {
 
 export function bindEvents() {
   document.addEventListener('input', onInput);
+  document.addEventListener('change', onChange);
   document.addEventListener('click', onClick);
   document.addEventListener('keydown', onKeydown);
+  // `error` does not bubble, so this listens in the capture phase.
+  document.addEventListener('error', onImageError, true);
+}
+
+// Buttons carry data-action instead of onclick=: index.html's CSP runs no inline
+// handler, and an attribute it did run could be forged by any markup that got in.
+// The targets stay on `window` (app.js, and the functions below in this file).
+const ACTIONS = {
+  'prev-section': () => window.prevSection(),
+  'next-section': () => window.nextSection(),
+  'skip-intro': () => window.skipIntro(),
+  'random-fill': () => window.randomFill(),
+  'start-over': () => window.startOver(),
+  'close-card': () => window.closeCardModal(),
+  'download-deck': () => window.generatePresentation(),
+  'new-sheet': () => window.createNewSheet(),
+  'save-sheet': () => window.saveCurrentSheet(),
+  'delete-sheet': () => window.deleteCurrentSheet(),
+};
+
+function onChange(e) {
+  if (e.target.dataset.change === 'load-sheet') window.loadSheet(e.target.value);
+}
+
+/**
+ * An image that fails to load falls back by its data-img-fallback value, in place of
+ * an onerror= attribute:
+ *   hide        hide the image
+ *   meme        mark its .meme-preview broken (CSS swaps in the note)
+ *   next-flex / next-inline-flex
+ *               hide the image and show the element after it with that display
+ */
+function onImageError(e) {
+  const img = e.target;
+  if (!(img instanceof HTMLImageElement) || !img.dataset.imgFallback) return;
+  const mode = img.dataset.imgFallback;
+  if (mode === 'meme') {
+    img.closest('.meme-preview')?.classList.add('meme-preview--broken');
+    return;
+  }
+  img.style.display = 'none';
+  const next = img.nextElementSibling;
+  if (next && mode === 'next-flex') next.style.display = 'flex';
+  if (next && mode === 'next-inline-flex') next.style.display = 'inline-flex';
 }
 
 function onInput(e) {
@@ -68,6 +114,14 @@ function onInput(e) {
 
 function onClick(e) {
   const el = e.target;
+
+  const actionEl = el.closest('[data-action]');
+  if (actionEl && ACTIONS[actionEl.dataset.action]) {
+    ACTIONS[actionEl.dataset.action]();
+    // As the last branch below does for any click outside a search box.
+    document.querySelectorAll('.search-results.open').forEach(r => r.classList.remove('open'));
+    return;
+  }
 
   if (el.dataset.console || el.closest('[data-console]')) {
     const opt = el.closest('[data-console]');
@@ -595,6 +649,16 @@ function populateIntroIframe() {
   if (_introBlobUrl) {
     URL.revokeObjectURL(_introBlobUrl);
     _introBlobUrl = null;
+  }
+  // The deck in the frame runs no script of its own: the frame is sandboxed without
+  // allow-scripts and inherits this page's CSP. It is same-origin (allow-same-origin),
+  // so this page wires the deck's controls once each new document has loaded.
+  if (!_introFrameWired) {
+    frame.addEventListener('load', () => {
+      const doc = frame.contentDocument;
+      if (doc && doc.getElementById('deck')) runDeck(doc);
+    });
+    _introFrameWired = true;
   }
   const html = generatePresentationHTML(state);
   const blob = new Blob([html], { type: 'text/html' });

@@ -175,8 +175,13 @@ function esc(str) {
   return String(str ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
 }
 
+/**
+ * The deck for the card modal's preview frame. It carries no <script>: the frame is
+ * `sandbox="allow-same-origin"` without `allow-scripts`, and it inherits index.html's
+ * CSP, which runs no inline script. The page wires it with `runDeck(frame.contentDocument)`.
+ */
 export function generatePresentationHTML(s) {
-  return buildHTML(s);
+  return buildHTML(s, { script: false });
 }
 
 export function downloadPresentation(s) {
@@ -194,7 +199,7 @@ export function downloadPresentation(s) {
   showToast('Presentation ready: open the downloaded file!');
 }
 
-function buildHTML(s) {
+function buildHTML(s, { script = true } = {}) {
   const name = s.identity.name || 'Unknown';
   const city = s.intro?.city || '';
   const country = s.identity.country || '';
@@ -257,17 +262,14 @@ ${getCSS()}
 ${slides.map((content, i) => `<div class="slide${i === 0 ? ' active' : ''}" id="slide-${i}">${content}</div>`).join('\n')}
 </div>
 <div class="controls">
-  <button class="ctrl-btn" id="prev-btn" onclick="go(-1)" disabled>&#8592;</button>
+  <button class="ctrl-btn" id="prev-btn" data-go="-1" disabled>&#8592;</button>
   <div class="slide-dots" id="slide-dots">
-    ${slides.map((_, i) => `<div class="dot${i === 0 ? ' active' : ''}" onclick="goTo(${i})"></div>`).join('')}
+    ${slides.map((_, i) => `<div class="dot${i === 0 ? ' active' : ''}" data-goto="${i}"></div>`).join('')}
   </div>
-  <button class="ctrl-btn" id="next-btn" onclick="go(1)">&#8594;</button>
+  <button class="ctrl-btn" id="next-btn" data-go="1">&#8594;</button>
 </div>
 <div class="slide-counter" id="counter">1 / ${slides.length}</div>
-<script>
-${getJS(slides.length)}
-</script>
-</body>
+${script ? `<script>\n(${runDeck.toString()})(document);\n</script>\n` : ''}</body>
 </html>`;
 }
 
@@ -313,14 +315,14 @@ function buildSlide3(stmts) {
   <div class="game-sub">Can you guess which one is false?</div>
   <div class="game-cards" id="game-cards">
     ${stmts.map((s, i) => `
-    <div class="game-card" id="gc-${i}" data-lie="${s.isLie ? '1' : '0'}" onclick="guess(${i})">
+    <div class="game-card" id="gc-${i}" data-lie="${s.isLie ? '1' : '0'}" data-guess="${i}">
       <div class="gc-letter">${String.fromCharCode(65 + i)}</div>
       <div class="gc-text">${esc(s.text)}</div>
       <div class="gc-reveal" id="gcr-${i}"></div>
     </div>`).join('')}
   </div>
   <div class="game-hint" id="game-hint">Tap a card to vote</div>
-  <button class="reveal-btn" id="reveal-btn" onclick="revealAll()" style="display:none">Reveal the lie &#8594;</button>
+  <button class="reveal-btn" id="reveal-btn" data-reveal style="display:none">Reveal the lie &#8594;</button>
 </div>`;
 }
 
@@ -702,79 +704,94 @@ body::before {
   `.trim();
 }
 
-function getJS(totalSlides) {
-  return `
-let current = 0;
-const total = ${totalSlides};
-let voted = false;
-let revealed = false;
+/**
+ * The deck's behaviour, written once and used twice:
+ *  - the downloaded file carries it as source text, `(${runDeck.toString()})(document)`,
+ *    so that file stays standalone and works from disk;
+ *  - the card modal's preview frame runs no script of its own (index.html's CSP and the
+ *    frame's sandbox both forbid it), so events.js calls `runDeck(frame.contentDocument)`
+ *    from the page instead.
+ * Because of the first use it must stay self-contained: no imports, nothing from this
+ * module's scope, only `doc` and browser globals. Controls carry data-go / data-goto /
+ * data-guess / data-reveal; inline onclick= would need 'unsafe-inline' in the page CSP.
+ */
+export function runDeck(doc) {
+  const total = doc.querySelectorAll('.slide').length;
+  let current = 0;
+  let revealed = false;
+  const byId = (id) => doc.getElementById(id);
 
-function go(dir) {
-  goTo(current + dir);
-}
+  function go(dir) {
+    goTo(current + dir);
+  }
 
-function goTo(idx) {
-  if (idx < 0 || idx >= total) return;
-  const old = document.getElementById('slide-' + current);
-  old.classList.add('exit-left');
-  old.classList.remove('active');
-  setTimeout(() => old.classList.remove('exit-left'), 450);
+  function goTo(idx) {
+    if (idx < 0 || idx >= total) return;
+    const old = byId('slide-' + current);
+    old.classList.add('exit-left');
+    old.classList.remove('active');
+    setTimeout(() => old.classList.remove('exit-left'), 450);
 
-  current = idx;
-  const next = document.getElementById('slide-' + current);
-  next.classList.add('active');
+    current = idx;
+    byId('slide-' + current).classList.add('active');
 
-  document.getElementById('prev-btn').disabled = current === 0;
-  document.getElementById('next-btn').disabled = current === total - 1;
-  document.getElementById('counter').textContent = (current + 1) + ' / ' + total;
+    byId('prev-btn').disabled = current === 0;
+    byId('next-btn').disabled = current === total - 1;
+    byId('counter').textContent = (current + 1) + ' / ' + total;
 
-  document.querySelectorAll('.dot').forEach((d, i) => d.classList.toggle('active', i === current));
-}
+    doc.querySelectorAll('.dot').forEach((d, i) => d.classList.toggle('active', i === current));
+  }
 
-function guess(idx) {
-  if (revealed) return;
-  document.querySelectorAll('.game-card').forEach(c => c.classList.remove('voted'));
-  const card = document.getElementById('gc-' + idx);
-  card.classList.add('voted');
-  voted = true;
+  function guess(idx) {
+    if (revealed) return;
+    doc.querySelectorAll('.game-card').forEach(c => c.classList.remove('voted'));
+    const card = byId('gc-' + idx);
+    card.classList.add('voted');
 
-  const hint = document.getElementById('game-hint');
-  hint.textContent = card.dataset.lie === '1' ? '🎯 You guessed it, reveal to confirm!' : '🤔 Hmm... are you sure? Reveal to find out!';
-  document.getElementById('reveal-btn').style.display = 'inline-flex';
-}
+    const hint = byId('game-hint');
+    hint.textContent = card.dataset.lie === '1' ? '🎯 You guessed it, reveal to confirm!' : '🤔 Hmm... are you sure? Reveal to find out!';
+    byId('reveal-btn').style.display = 'inline-flex';
+  }
 
-function revealAll() {
-  if (revealed) return;
-  revealed = true;
-  document.getElementById('reveal-btn').style.display = 'none';
+  function revealAll() {
+    if (revealed) return;
+    revealed = true;
+    byId('reveal-btn').style.display = 'none';
 
-  const cards = document.querySelectorAll('.game-card');
-  cards.forEach((card, i) => {
-    const isLie = card.dataset.lie === '1';
-    const revealEl = document.getElementById('gcr-' + i);
-    if (isLie) {
-      card.classList.add('is-lie');
-      revealEl.textContent = '✗ The lie!';
-      revealEl.style.color = '#f43f5e';
+    doc.querySelectorAll('.game-card').forEach((card, i) => {
+      const isLie = card.dataset.lie === '1';
+      const revealEl = byId('gcr-' + i);
+      if (isLie) {
+        card.classList.add('is-lie');
+        revealEl.textContent = '✗ The lie!';
+        revealEl.style.color = '#f43f5e';
+      } else {
+        card.classList.add('correct');
+        revealEl.textContent = '✓ True';
+        revealEl.style.color = '#34d399';
+      }
+    });
+
+    const votedCard = doc.querySelector('.game-card.voted');
+    if (votedCard) {
+      const wasLie = votedCard.dataset.lie === '1';
+      byId('game-hint').textContent = wasLie ? '🎉 You got it! The lie has been revealed.' : '😈 Fooled! Now you know the truth.';
     } else {
-      card.classList.add('correct');
-      revealEl.textContent = '✓ True';
-      revealEl.style.color = '#34d399';
+      byId('game-hint').textContent = 'The lie has been revealed!';
     }
+  }
+
+  doc.addEventListener('click', (e) => {
+    const el = e.target.closest('[data-go], [data-goto], [data-guess], [data-reveal]');
+    if (!el || el.disabled) return;
+    if (el.hasAttribute('data-go')) go(Number(el.dataset.go));
+    else if (el.hasAttribute('data-goto')) goTo(Number(el.dataset.goto));
+    else if (el.hasAttribute('data-guess')) guess(Number(el.dataset.guess));
+    else revealAll();
   });
 
-  const votedCard = document.querySelector('.game-card.voted');
-  if (votedCard) {
-    const wasLie = votedCard.dataset.lie === '1';
-    document.getElementById('game-hint').textContent = wasLie ? '🎉 You got it! The lie has been revealed.' : '😈 Fooled! Now you know the truth.';
-  } else {
-    document.getElementById('game-hint').textContent = 'The lie has been revealed!';
-  }
-}
-
-document.addEventListener('keydown', (e) => {
-  if (e.key === 'ArrowRight') go(1);
-  if (e.key === 'ArrowLeft') go(-1);
-});
-  `.trim();
+  doc.addEventListener('keydown', (e) => {
+    if (e.key === 'ArrowRight') go(1);
+    if (e.key === 'ArrowLeft') go(-1);
+  });
 }
