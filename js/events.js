@@ -12,6 +12,7 @@ import {
 import { downloadPresentation, generatePresentationHTML, generateScript, runDeck } from './present.js';
 import { debounce, $, showToast, scrollTop, escHtml, httpsUrl } from './utils.js';
 import { NeoAuth } from './neorgon-auth.js';
+import { randomFill } from './testdata.js';
 
 const debouncedSearch = debounce(handleSearch, 350);
 
@@ -35,22 +36,25 @@ export function bindEvents() {
 
 // Buttons carry data-action instead of onclick=: index.html's CSP runs no inline
 // handler, and an attribute it did run could be forged by any markup that got in.
-// The targets stay on `window` (app.js, and the functions below in this file).
+// The targets are module functions and none of them is put on `window`. A global
+// function is a gadget: a script the CSP allows can be told to call one by name
+// (Turnstile's api.js?onload=<name>, which Clerk needs, does exactly that), so
+// markup injected without any script could still randomise or wipe the sheet.
 const ACTIONS = {
-  'prev-section': () => window.prevSection(),
-  'next-section': () => window.nextSection(),
-  'skip-intro': () => window.skipIntro(),
-  'random-fill': () => window.randomFill(),
-  'start-over': () => window.startOver(),
-  'close-card': () => window.closeCardModal(),
-  'download-deck': () => window.generatePresentation(),
-  'new-sheet': () => window.createNewSheet(),
-  'save-sheet': () => window.saveCurrentSheet(),
-  'delete-sheet': () => window.deleteCurrentSheet(),
+  'prev-section': () => prevSection(),
+  'next-section': () => nextSection(),
+  'skip-intro': () => skipIntro(),
+  'random-fill': () => randomFill(),
+  'start-over': () => startOver(),
+  'close-card': () => closeCardModal(),
+  'download-deck': () => generatePresentation(),
+  'new-sheet': () => createNewSheet(),
+  'save-sheet': () => saveCurrentSheet(),
+  'delete-sheet': () => deleteCurrentSheet(),
 };
 
 function onChange(e) {
-  if (e.target.dataset.change === 'load-sheet') window.loadSheet(e.target.value);
+  if (e.target.dataset.change === 'load-sheet') loadSheet(e.target.value);
 }
 
 /**
@@ -310,17 +314,17 @@ function onKeydown(e) {
   if (e.key === 'Escape') {
     document.querySelectorAll('.search-results.open').forEach(r => r.classList.remove('open'));
     if ($('card-modal').classList.contains('open')) {
-      window.closeCardModal();
+      closeCardModal();
     }
   }
   // Plain arrow keys navigate sections (also still works with Alt for backwards compat)
   if ((e.key === 'ArrowRight') && !isInputFocused()) {
     e.preventDefault();
-    window.nextSection();
+    nextSection();
   }
   if ((e.key === 'ArrowLeft') && !isInputFocused()) {
     e.preventDefault();
-    window.prevSection();
+    prevSection();
   }
 }
 
@@ -503,9 +507,9 @@ function deepMergeIntoState(data) {
   deepMerge(state, safeData);
 }
 
-// ── Sheet window functions ───────────────────────────────────────────────────
+// ── Sheet functions ──────────────────────────────────────────────────────────
 
-window.loadSheet = async function(sheetId) {
+async function loadSheet(sheetId) {
   if (!sheetId || !state._user) return;
   try {
     const sheets = await convex.query(api.sheets.list, {});
@@ -521,9 +525,9 @@ window.loadSheet = async function(sheetId) {
     render();
     showToast(`Loaded: ${sheet.name}`);
   } catch { showToast('Failed to load sheet'); }
-};
+}
 
-window.createNewSheet = async function() {
+async function createNewSheet() {
   if (!state._user && !(await NeoAuth.requireSignIn({ reason: SAVE_REASON }))) return;
   const name = prompt('Sheet name:', 'My Character Sheet');
   if (!name) return;
@@ -538,11 +542,11 @@ window.createNewSheet = async function() {
     await loadUserSheets();
     showToast(`Created: ${name}`);
   } catch { showToast('Failed to create sheet'); }
-};
+}
 
-window.saveCurrentSheet = async function() {
+async function saveCurrentSheet() {
   if (!state._user && !(await NeoAuth.requireSignIn({ reason: SAVE_REASON }))) return;
-  if (!state._sheetId) { await window.createNewSheet(); return; }
+  if (!state._sheetId) { await createNewSheet(); return; }
   try {
     const data = JSON.stringify(getSheetData(state));
     await convex.mutation(api.sheets.save, {
@@ -552,9 +556,9 @@ window.saveCurrentSheet = async function() {
     });
     showToast('Saved!');
   } catch { showToast('Failed to save sheet'); }
-};
+}
 
-window.deleteCurrentSheet = async function() {
+async function deleteCurrentSheet() {
   if (!state._user || !state._sheetId) return;
   if (!confirm(`Delete "${state._sheetName}"?`)) return;
   try {
@@ -564,11 +568,11 @@ window.deleteCurrentSheet = async function() {
     await loadUserSheets();
     showToast('Sheet deleted');
   } catch { showToast('Failed to delete sheet'); }
-};
+}
 
 // ── Navigation / card functions ─────────────────────────────────────────────
 
-window.startOver = function() {
+function startOver() {
   const hasData = state.identity.name || state.gaming.topGames.length || state.anime.topAnime.length || state.movies.topMovies.length || state.hobbies.selected.length;
   if (!hasData || confirm('Start over? Your answers will be cleared: you can always roll the dice again.')) {
     resetState(state);
@@ -576,7 +580,7 @@ window.startOver = function() {
     scrollTop();
     showToast('Fresh start!');
   }
-};
+}
 
 function spawnConfetti() {
   // 60 elements animating across the viewport is exactly what this query is for.
@@ -635,12 +639,12 @@ function playRevealSound() {
   } catch { /* no audio support */ }
 }
 
-window.skipIntro = function() {
+function skipIntro() {
   // Jump from Your Story (index 1) directly to Gaming (index 2)
   state.currentSection = 2;
   save(state);
   render();
-};
+}
 
 function populateIntroIframe() {
   const frame = document.getElementById('intro-preview-frame');
@@ -666,7 +670,7 @@ function populateIntroIframe() {
   frame.src = _introBlobUrl;
 }
 
-window.nextSection = async function() {
+async function nextSection() {
   if (state.showBuilder) {
     populateIntroIframe();
     await openCardPanel();
@@ -693,9 +697,9 @@ window.nextSection = async function() {
     renderBuilder();
     scrollTop();
   }
-};
+}
 
-window.prevSection = function() {
+function prevSection() {
   clearComment();
   if (state.showBuilder) {
     state.showBuilder = false;
@@ -711,11 +715,11 @@ window.prevSection = function() {
     render();
     scrollTop();
   }
-};
+}
 
-window.closeCardModal = function() {
+function closeCardModal() {
   $('card-modal').classList.remove('open');
-};
+}
 
 function onCardAction(action) {
   switch (action) {
@@ -723,17 +727,17 @@ function onCardAction(action) {
     case 'copy': exportCopy(); break;
     case 'share': exportShare(); break;
     case 'pdf': exportPdf(); break;
-    case 'script': window.copyScript(); break;
+    case 'script': copyScript(); break;
     case 'copy-link': copyShareLink(); break;
     case 'open-link': openShareLink(); break;
   }
 }
 
-window.generatePresentation = function() {
+function generatePresentation() {
   downloadPresentation(state);
-};
+}
 
-window.copyScript = async function() {
+async function copyScript() {
   const md = generateScript(state);
   try {
     await navigator.clipboard.writeText(md);
@@ -749,4 +753,4 @@ window.copyScript = async function() {
     document.body.removeChild(ta);
     showToast('Presenter script copied!');
   }
-};
+}

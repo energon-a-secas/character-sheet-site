@@ -82,7 +82,7 @@ The active glow tints focus states, section dots, selected chips, and `color-mix
 
 ### 2. Horizontal carousel (`.section-wrapper` + `.section-arrow`)
 
-The interview is one section at a time inside `.section-wrapper`, navigated by round `.section-arrow` buttons (`arrow-left` / `arrow-right`, 50% radius, surface-1 fill) plus dot nav with SVG ring progress. `nextSection()` / `prevSection()` are exposed on `window` and reached through `data-action` buttons routed by `js/events.js`; the page CSP runs no inline `onclick`. The page does not scroll through sections; it transitions between them.
+The interview is one section at a time inside `.section-wrapper`, navigated by round `.section-arrow` buttons (`arrow-left` / `arrow-right`, 50% radius, surface-1 fill) plus dot nav with SVG ring progress. `nextSection()` / `prevSection()` are module functions in `js/events.js`, reached through `data-action` buttons it routes; the page CSP runs no inline `onclick`, and no function is put on `window`. The page does not scroll through sections; it transitions between them.
 
 ### 3. Canvas card export
 
