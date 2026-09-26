@@ -158,6 +158,9 @@ meta tag and are deliberately absent.
   `runDeck(frame.contentDocument)` from the page. The downloaded deck is the same HTML plus
   `runDeck` serialised into an inline script, so it still works from disk. `runDeck` must stay
   self-contained for that reason.
+- **Markdown is not published.** Pages builds with Jekyll, which would otherwise turn
+  `CLAUDE.md`, `DESIGN.md` and `PRODUCT.md` into same-origin pages with no CSP. `_config.yml`
+  excludes Markdown and `docs/`; a new page a visitor loads must be `.html` with its own policy.
 
 Verify changes at the production origin, not on localhost: the header kit's analytics and the
 Auth Kit's Clerk key only run on `charactersheet.neorgon.com`, so a localhost run never
