@@ -654,9 +654,10 @@ function populateIntroIframe() {
     URL.revokeObjectURL(_introBlobUrl);
     _introBlobUrl = null;
   }
-  // The deck in the frame runs no script of its own: the frame is sandboxed without
-  // allow-scripts and inherits this page's CSP. It is same-origin (allow-same-origin),
-  // so this page wires the deck's controls once each new document has loaded.
+  // The deck in the frame runs no script of its own: it is a same-origin blob: document
+  // that inherits this page's CSP, so this page wires the deck's controls once each new
+  // document has loaded. The frame has no sandbox attribute: WebKit fires no listener,
+  // not even ours, in a frame sandboxed without allow-scripts.
   if (!_introFrameWired) {
     frame.addEventListener('load', () => {
       const doc = frame.contentDocument;

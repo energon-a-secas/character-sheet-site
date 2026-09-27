@@ -152,10 +152,14 @@ meta tag and are deliberately absent.
   `ConvexHttpClient`, plain https, so no `wss:`), the search Worker
   `charactersheet-api.neorgon.workers.dev`, Open-Meteo's `/v1/search`, the four image hosts,
   Clerk, and the two analytics endpoints.
-- **The intro-deck preview** in the card modal is a `blob:` iframe (`frame-src blob:`) with
-  `sandbox="allow-same-origin"` and no `allow-scripts`. It inherits the page policy, so it
-  carries no `<script>`: `generatePresentationHTML` leaves it out and `events.js` runs
-  `runDeck(frame.contentDocument)` from the page. The downloaded deck is the same HTML plus
+- **The intro-deck preview** in the card modal is a same-origin `blob:` iframe
+  (`frame-src blob:`). It inherits the page policy, so it carries no `<script>`:
+  `generatePresentationHTML` leaves it out and `events.js` runs
+  `runDeck(frame.contentDocument)` from the page. **Do not add a `sandbox` attribute.**
+  WebKit (Safari and every iOS browser) fires no event listener in a frame sandboxed
+  without `allow-scripts`, not even one the parent page registered, so the arrows, dots,
+  game cards and keys all go dead there while Chromium and Firefox keep working. The
+  inherited CSP is what refuses injected script and handlers in the frame. The downloaded deck is the same HTML plus
   `runDeck` serialised into an inline script, so it still works from disk. `runDeck` must stay
   self-contained for that reason.
 - **Markdown is not published.** Pages builds with Jekyll, which would otherwise turn

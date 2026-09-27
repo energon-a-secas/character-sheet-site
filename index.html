@@ -20,7 +20,10 @@
     package an injection names. The Convex client is ConvexHttpClient, plain
     https, so there is no wss entry.
     frame-src blob: is the intro-deck preview, which inherits this policy and runs
-    no script of its own (events.js wires it). frame-ancestors, report-uri and
+    no script of its own (events.js wires it). It has no sandbox attribute on
+    purpose: WebKit fires no listener at all, not even this page's, in a frame
+    sandboxed without allow-scripts, so the preview went dead in Safari. The
+    inherited policy is what refuses script there. frame-ancestors, report-uri and
     X-Content-Type-Options do nothing in a meta tag, so they are not here.
 
     img-src is `https:` on THIS page only. The meme field takes an arbitrary image
@@ -161,7 +164,7 @@
       <div class="card-modal-panels">
         <div class="modal-panel modal-panel--intro">
           <div class="panel-label">Intro Slide</div>
-          <iframe id="intro-preview-frame" class="intro-preview-iframe" title="Intro slide preview" sandbox="allow-same-origin"></iframe>
+          <iframe id="intro-preview-frame" class="intro-preview-iframe" title="Intro slide preview"></iframe>
         </div>
         <div class="modal-panel modal-panel--card">
           <div class="panel-label">Character Card</div>

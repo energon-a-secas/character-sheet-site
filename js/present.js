@@ -176,9 +176,10 @@ function esc(str) {
 }
 
 /**
- * The deck for the card modal's preview frame. It carries no <script>: the frame is
- * `sandbox="allow-same-origin"` without `allow-scripts`, and it inherits index.html's
- * CSP, which runs no inline script. The page wires it with `runDeck(frame.contentDocument)`.
+ * The deck for the card modal's preview frame. It carries no <script>: the frame is a
+ * same-origin blob: document that inherits index.html's CSP, which runs no inline script.
+ * The page wires it with `runDeck(frame.contentDocument)`. The frame has no sandbox
+ * attribute, because WebKit runs no listener in a frame sandboxed without allow-scripts.
  */
 export function generatePresentationHTML(s) {
   return buildHTML(s, { script: false });
@@ -708,8 +709,8 @@ body::before {
  * The deck's behaviour, written once and used twice:
  *  - the downloaded file carries it as source text, `(${runDeck.toString()})(document)`,
  *    so that file stays standalone and works from disk;
- *  - the card modal's preview frame runs no script of its own (index.html's CSP and the
- *    frame's sandbox both forbid it), so events.js calls `runDeck(frame.contentDocument)`
+ *  - the card modal's preview frame runs no script of its own (it inherits index.html's
+ *    CSP, which forbids inline script), so events.js calls `runDeck(frame.contentDocument)`
  *    from the page instead.
  * Because of the first use it must stay self-contained: no imports, nothing from this
  * module's scope, only `doc` and browser globals. Controls carry data-go / data-goto /
