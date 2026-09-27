@@ -414,7 +414,17 @@ export function qrSvg(text, size = 280) {
 </svg>`;
 }
 
-/** Module count for `text`, for deciding whether a QR is worth showing. */
+/**
+ * Module count for `text`, for deciding whether a QR is worth showing. Text past what
+ * version 40 holds counts as Infinity rather than throwing, so a caller's size limit
+ * hides the QR instead of the modal logging an uncaught 'QR: data too long'.
+ */
 export function qrModuleCount(text) {
-  return pickVersion(new TextEncoder().encode(text).length) * 4 + 17;
+  let version;
+  try {
+    version = pickVersion(new TextEncoder().encode(text).length);
+  } catch {
+    return Infinity;
+  }
+  return version * 4 + 17;
 }
